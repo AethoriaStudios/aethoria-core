@@ -94,7 +94,11 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GOLD + "Aethoria Status: " + ChatColor.YELLOW + target.getName());
         sender.sendMessage(ChatColor.GRAY + "Class: " + ChatColor.WHITE + classSwapService.getActiveClass(target.getUniqueId()));
-        sender.sendMessage(ChatColor.GRAY + "Adventurer Level: " + ChatColor.WHITE + plugin.getProgressionService().getLevel(target.getUniqueId()));
+        int playerLevel = plugin.getProgressionService().getLevel(target.getUniqueId());
+        int playerXp = plugin.getProgressionService().getExperience(target.getUniqueId());
+        int xpToNextLevel = plugin.getProgressionService().getXpToNextLevel(target.getUniqueId());
+        sender.sendMessage(ChatColor.GRAY + "Adventurer Level: " + ChatColor.WHITE + playerLevel);
+        sender.sendMessage(ChatColor.GRAY + "Adventurer XP: " + ChatColor.WHITE + playerXp + (xpToNextLevel > 0 ? "/" + xpToNextLevel : ChatColor.GOLD + " (MAX)"));
         sender.sendMessage(ChatColor.GRAY + currencyService.getPrimaryCurrencyName() + ": " + ChatColor.WHITE + formatDecimal(currencyService.getAethor(target.getUniqueId())));
         sender.sendMessage(ChatColor.GRAY + "Dungeon Coins: " + ChatColor.WHITE + currencyService.getDungeonCoins(target.getUniqueId()));
         sender.sendMessage(ChatColor.GRAY + "Daily Bonus: " + (dungeonService.canClaimDailyBonus(target.getUniqueId()) ? ChatColor.GREEN + "Available" : ChatColor.RED + "Already claimed"));
@@ -271,7 +275,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleLevel(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria level <get|set|add|setxp> <player> [amount]");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria level <get|set|add|addxp|setxp> <player> [amount]");
             return true;
         }
 
@@ -283,12 +287,15 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
         ProgressionService progressionService = plugin.getProgressionService();
         if (action.equals("get")) {
-            sender.sendMessage(ChatColor.GOLD + target.getName() + ChatColor.GRAY + " is level " + ChatColor.WHITE + progressionService.getLevel(target.getUniqueId()) + ChatColor.GRAY + " with " + ChatColor.WHITE + progressionService.getExperience(target.getUniqueId()) + ChatColor.GRAY + " XP.");
+            int level = progressionService.getLevel(target.getUniqueId());
+            int xp = progressionService.getExperience(target.getUniqueId());
+            int xpToNext = progressionService.getXpToNextLevel(target.getUniqueId());
+            sender.sendMessage(ChatColor.GOLD + target.getName() + ChatColor.GRAY + " is level " + ChatColor.WHITE + level + ChatColor.GRAY + " with " + ChatColor.WHITE + xp + ChatColor.GRAY + (xpToNext > 0 ? "/" + ChatColor.WHITE + xpToNext + ChatColor.GRAY + " XP." : " XP at max level."));
             return true;
         }
 
         if (args.length < 4) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria level <set|add|setxp> <player> <amount>");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria level <set|add|addxp|setxp> <player> <amount>");
             return true;
         }
 
@@ -300,6 +307,12 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "set" -> progressionService.setLevel(target.getUniqueId(), amount);
             case "add" -> progressionService.addLevels(target.getUniqueId(), amount);
+            case "addxp" -> {
+                ProgressionService.ProgressionResult result = progressionService.addExperience(target.getUniqueId(), amount);
+                plugin.getGameplayStatService().refreshLater(target);
+                sender.sendMessage(ChatColor.GREEN + "Added " + amount + " XP to " + target.getName() + ". Level " + result.level() + ", XP " + result.experience() + ", levels gained " + result.levelsGained() + '.');
+                return true;
+            }
             case "setxp" -> progressionService.setExperience(target.getUniqueId(), amount);
             default -> {
                 sender.sendMessage(ChatColor.RED + "Unknown level action.");
@@ -309,7 +322,8 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
         plugin.getGameplayStatService().refreshLater(target);
 
-        sender.sendMessage(ChatColor.GREEN + "Updated progression for " + target.getName() + ": level " + progressionService.getLevel(target.getUniqueId()) + ", XP " + progressionService.getExperience(target.getUniqueId()) + '.');
+        int xpToNext = progressionService.getXpToNextLevel(target.getUniqueId());
+        sender.sendMessage(ChatColor.GREEN + "Updated progression for " + target.getName() + ": level " + progressionService.getLevel(target.getUniqueId()) + ", XP " + progressionService.getExperience(target.getUniqueId()) + (xpToNext > 0 ? "/" + xpToNext : " (MAX)") + '.');
         return true;
     }
 
@@ -466,7 +480,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dungeoncoins <get|set|add|remove> <player> [amount]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria class <get|set|swap> <player> [class]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|inspect> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
@@ -512,7 +526,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeLevelCommand(String[] args) {
         if (args.length == 2) {
-            return filter(List.of("get", "set", "add", "setxp"), args[1]);
+            return filter(List.of("get", "set", "add", "addxp", "setxp"), args[1]);
         }
         if (args.length == 3) {
             return filter(getOnlinePlayerNames(), args[2]);
