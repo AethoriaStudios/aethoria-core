@@ -48,7 +48,10 @@ public final class ItemRestrictionListener implements Listener {
             event.setCancelled(true);
             int requiredLevel = plugin.getItemFactory().getLevelRequirement(nextItem).orElse(1);
             event.getPlayer().sendMessage(org.bukkit.ChatColor.RED + "You need adventurer level " + requiredLevel + " to use that item.");
+            return;
         }
+
+        validateEquipmentLater(event.getPlayer());
     }
 
     private void validateEquipmentLater(Player player) {
@@ -83,6 +86,8 @@ public final class ItemRestrictionListener implements Listener {
         if (removedAny) {
             player.sendMessage(org.bukkit.ChatColor.RED + "Some equipped items were removed because they do not meet class or level requirements.");
         }
+
+        plugin.getGameplayStatService().refresh(player);
     }
 
     private void returnItem(Player player, ItemStack itemStack) {

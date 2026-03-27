@@ -21,11 +21,13 @@ public final class PlayerConnectionListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        plugin.getGameplayStatService().clear(event.getPlayer().getUniqueId());
         plugin.getProfileService().saveAndEvict(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onPlayerKick(PlayerKickEvent event) {
+        plugin.getGameplayStatService().clear(event.getPlayer().getUniqueId());
         plugin.getProfileService().saveAndEvict(event.getPlayer().getUniqueId());
     }
 }
