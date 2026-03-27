@@ -11,6 +11,12 @@ public record ItemStats(
     double critDamage,
     double health
 ) {
+    private static final ItemStats EMPTY = new ItemStats(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
+
+    public static ItemStats empty() {
+        return EMPTY;
+    }
+
     public boolean isEmpty() {
         return damage == 0.0D
             && defense == 0.0D
@@ -18,6 +24,25 @@ public record ItemStats(
             && critChance == 0.0D
             && critDamage == 0.0D
             && health == 0.0D;
+    }
+
+    public ItemStats add(ItemStats other) {
+        if (other == null || other.isEmpty()) {
+            return this;
+        }
+
+        if (isEmpty()) {
+            return other;
+        }
+
+        return new ItemStats(
+            damage + other.damage,
+            defense + other.defense,
+            magicPower + other.magicPower,
+            critChance + other.critChance,
+            critDamage + other.critDamage,
+            health + other.health
+        );
     }
 
     public Map<String, Double> asDisplayMap() {
