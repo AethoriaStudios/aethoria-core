@@ -11,6 +11,7 @@ import com.aethoria.core.listener.CombatProgressionListener;
 import com.aethoria.core.service.ClassSwapService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
+import com.aethoria.core.service.GameplayStatService;
 import com.aethoria.core.service.PlayerProfileService;
 import com.aethoria.core.service.ProgressionService;
 import com.aethoria.core.storage.MariaDbPlayerDataStore;
@@ -27,6 +28,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private ClassSwapService classSwapService;
     private DungeonService dungeonService;
     private ProgressionService progressionService;
+    private GameplayStatService gameplayStatService;
     private ItemKeys itemKeys;
     private ItemRegistryService itemRegistryService;
     private AethoriaItemFactory itemFactory;
@@ -87,6 +89,10 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return itemFactory;
     }
 
+    public GameplayStatService getGameplayStatService() {
+        return gameplayStatService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -98,6 +104,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         classSwapService = new ClassSwapService(this, profileService, currencyService);
         dungeonService = new DungeonService(this, profileService, currencyService);
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
+        gameplayStatService = new GameplayStatService(this);
         getLogger().info("Using " + playerDataStore.getStorageName() + " player data store.");
     }
 

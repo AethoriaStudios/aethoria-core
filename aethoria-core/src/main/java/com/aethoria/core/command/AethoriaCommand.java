@@ -2,16 +2,20 @@ package com.aethoria.core.command;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import com.aethoria.core.item.AethoriaItemDefinition;
+import com.aethoria.core.item.ItemStats;
 import com.aethoria.core.service.ClassSwapService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.ProgressionService;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -98,6 +102,11 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GRAY + currencyService.getPrimaryCurrencyName() + ": " + ChatColor.WHITE + formatDecimal(currencyService.getAethor(target.getUniqueId())));
         sender.sendMessage(ChatColor.GRAY + "Dungeon Coins: " + ChatColor.WHITE + currencyService.getDungeonCoins(target.getUniqueId()));
         sender.sendMessage(ChatColor.GRAY + "Daily Bonus: " + (dungeonService.canClaimDailyBonus(target.getUniqueId()) ? ChatColor.GREEN + "Available" : ChatColor.RED + "Already claimed"));
+        sender.sendMessage(ChatColor.GRAY + "Equipped Stats: " + ChatColor.WHITE + formatStats(plugin.getGameplayStatService().getStats(target.getUniqueId())));
+        AttributeInstance maxHealthAttribute = target.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHealthAttribute != null) {
+            sender.sendMessage(ChatColor.GRAY + "Max Health: " + ChatColor.WHITE + formatDecimal(maxHealthAttribute.getBaseValue()));
+        }
         return true;
     }
 
@@ -226,6 +235,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "set" -> {
                 classSwapService.setActiveClass(target.getUniqueId(), classId);
+                plugin.getGameplayStatService().refreshLater(target);
                 sender.sendMessage(ChatColor.GREEN + "Set active class for " + target.getName() + " to " + classId + '.');
             }
             case "swap" -> {
@@ -234,6 +244,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "Swap failed. The player may not have enough " + plugin.getCurrencyService().getPrimaryCurrencyName() + '.');
                     return true;
                 }
+                plugin.getGameplayStatService().refreshLater(target);
                 sender.sendMessage(ChatColor.GREEN + "Swapped class for " + target.getName() + " to " + classId + " for " + formatDecimal(cost) + ' ' + plugin.getCurrencyService().getPrimaryCurrencyName() + '.');
             }
             default -> {
@@ -401,6 +412,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GRAY + "Type: " + ChatColor.WHITE + definition.type().name());
         sender.sendMessage(ChatColor.GRAY + "Required Class: " + ChatColor.WHITE + (definition.hasClassRestriction() ? definition.requiredClass() : "None"));
         sender.sendMessage(ChatColor.GRAY + "Level Requirement: " + ChatColor.WHITE + definition.levelRequirement());
+        sender.sendMessage(ChatColor.GRAY + "Item Stats: " + ChatColor.WHITE + formatStats(definition.stats()));
         return true;
     }
 
@@ -441,6 +453,20 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private String formatDecimal(double value) {
         return String.format(Locale.US, "%.2f", value);
+    }
+
+    private String formatStats(ItemStats stats) {
+        if (stats == null || stats.isEmpty()) {
+            return "None";
+        }
+
+        return stats.asDisplayMap().entrySet().stream()
+            .map(this::formatStatEntry)
+            .collect(Collectors.joining(", "));
+    }
+
+    private String formatStatEntry(Map.Entry<String, Double> entry) {
+        return entry.getKey() + " +" + formatDecimal(entry.getValue());
     }
 
     private void sendHelp(CommandSender sender) {

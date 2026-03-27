@@ -63,6 +63,16 @@ public final class AethoriaItemFactory {
         return getDefinition(itemStack).map(AethoriaItemDefinition::levelRequirement);
     }
 
+    public ItemStats getGameplayStats(ItemStack itemStack, String activeClass, int playerLevel) {
+        if (isRestrictedForClass(itemStack, activeClass) || isRestrictedForLevel(itemStack, playerLevel)) {
+            return ItemStats.empty();
+        }
+
+        return getDefinition(itemStack)
+            .map(AethoriaItemDefinition::stats)
+            .orElse(ItemStats.empty());
+    }
+
     private ItemStack createItem(AethoriaItemDefinition definition, int amount) {
         ItemStack itemStack = new ItemStack(definition.material(), Math.max(1, amount));
         ItemMeta itemMeta = itemStack.getItemMeta();
