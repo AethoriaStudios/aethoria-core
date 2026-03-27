@@ -13,6 +13,9 @@ currencies:
   dungeon-daily-bonus: 15
 systems:
   debug-logging: true
+testing:
+  test-staff:
+    cooldown-seconds: 2.5
 progression:
   mob-kill-xp:
     enabled: true
