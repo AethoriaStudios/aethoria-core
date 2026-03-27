@@ -38,19 +38,6 @@ public final class ItemRestrictionListener implements Listener {
 
     @EventHandler
     public void onItemHeld(PlayerItemHeldEvent event) {
-        ItemStack nextItem = event.getPlayer().getInventory().getItem(event.getNewSlot());
-        String activeClass = plugin.getClassSwapService().getActiveClass(event.getPlayer().getUniqueId());
-        int playerLevel = plugin.getProgressionService().getLevel(event.getPlayer().getUniqueId());
-        if (plugin.getItemFactory().isRestrictedForClass(nextItem, activeClass)) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(org.bukkit.ChatColor.RED + "Your current class cannot use that item.");
-        } else if (plugin.getItemFactory().isRestrictedForLevel(nextItem, playerLevel)) {
-            event.setCancelled(true);
-            int requiredLevel = plugin.getItemFactory().getLevelRequirement(nextItem).orElse(1);
-            event.getPlayer().sendMessage(org.bukkit.ChatColor.RED + "You need adventurer level " + requiredLevel + " to use that item.");
-            return;
-        }
-
         validateEquipmentLater(event.getPlayer());
     }
 
@@ -62,13 +49,6 @@ public final class ItemRestrictionListener implements Listener {
         String activeClass = plugin.getClassSwapService().getActiveClass(player.getUniqueId());
         int playerLevel = plugin.getProgressionService().getLevel(player.getUniqueId());
         boolean removedAny = false;
-
-        ItemStack mainHand = player.getInventory().getItemInMainHand();
-        if (plugin.getItemFactory().isRestrictedForClass(mainHand, activeClass) || plugin.getItemFactory().isRestrictedForLevel(mainHand, playerLevel)) {
-            player.getInventory().setItemInMainHand(null);
-            returnItem(player, mainHand);
-            removedAny = true;
-        }
 
         ItemStack[] armor = player.getInventory().getArmorContents();
         for (int index = 0; index < armor.length; index++) {
