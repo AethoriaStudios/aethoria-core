@@ -19,6 +19,7 @@ import com.aethoria.core.storage.PlayerDataStore;
 import com.aethoria.core.storage.YamlPlayerDataStore;
 import java.util.logging.Level;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class AethoriaCorePlugin extends JavaPlugin {
@@ -48,16 +49,18 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         getLogger().info("Aethoria Core disabled.");
     }
 
-    public boolean reloadAethoria() {
-        shutdownServices();
+    public ItemRegistryService.ReloadResult reloadAethoria() {
         reloadConfig();
 
         try {
-            bootstrapServices();
-            return true;
+            ItemRegistryService.ReloadResult result = itemRegistryService.reload();
+            for (Player player : getServer().getOnlinePlayers()) {
+                gameplayStatService.refreshLater(player);
+            }
+            return result;
         } catch (RuntimeException exception) {
             getLogger().log(Level.SEVERE, "Failed to reload Aethoria Core cleanly.", exception);
-            return false;
+            return null;
         }
     }
 

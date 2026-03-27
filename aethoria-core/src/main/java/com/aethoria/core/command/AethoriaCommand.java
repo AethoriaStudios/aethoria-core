@@ -2,6 +2,7 @@ package com.aethoria.core.command;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import com.aethoria.core.item.AethoriaItemDefinition;
+import com.aethoria.core.item.ItemRegistryService;
 import com.aethoria.core.item.ItemStats;
 import com.aethoria.core.service.ClassSwapService;
 import com.aethoria.core.service.CurrencyService;
@@ -73,9 +74,9 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean handleReload(CommandSender sender) {
-        boolean reloaded = plugin.reloadAethoria();
-        if (reloaded) {
-            sender.sendMessage(ChatColor.GREEN + "Aethoria Core reloaded.");
+        ItemRegistryService.ReloadResult reloadResult = plugin.reloadAethoria();
+        if (reloadResult != null) {
+            sender.sendMessage(ChatColor.GREEN + "Aethoria Core reloaded. items.yml: " + reloadResult.loadedDefinitions() + " loaded, " + reloadResult.invalidDefinitions() + " invalid.");
         } else {
             sender.sendMessage(ChatColor.RED + "Aethoria Core reload failed. Check the console.");
         }
