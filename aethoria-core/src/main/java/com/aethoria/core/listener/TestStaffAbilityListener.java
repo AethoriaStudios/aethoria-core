@@ -114,6 +114,7 @@ public final class TestStaffAbilityListener implements Listener {
 
     private void damageNearbyTargets(Location center, Entity shooter) {
         Collection<Entity> nearbyEntities = center.getWorld().getNearbyEntities(center, TEST_ROCKET_RADIUS, TEST_ROCKET_RADIUS, TEST_ROCKET_RADIUS);
+        int hitCount = 0;
         for (Entity entity : nearbyEntities) {
             if (!(entity instanceof LivingEntity livingEntity)) {
                 continue;
@@ -124,9 +125,10 @@ public final class TestStaffAbilityListener implements Listener {
 
             livingEntity.damage(TEST_ROCKET_DAMAGE, shooter == null ? entity : shooter);
             livingEntity.getWorld().spawnParticle(Particle.CRIT, livingEntity.getLocation().add(0.0D, 1.0D, 0.0D), 12, 0.3D, 0.4D, 0.3D, 0.02D);
+            hitCount++;
         }
 
-        if (shooter instanceof Player player) {
+        if (hitCount > 0 && shooter instanceof Player player) {
             player.sendMessage(ChatColor.AQUA + "Test rocket launched: 100 hearts damage.");
         }
     }
