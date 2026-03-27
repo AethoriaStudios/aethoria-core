@@ -1,0 +1,17 @@
+name: ${name}
+version: ${version}
+main: com.aethoria.core.AethoriaCorePlugin
+api-version: '1.20.6'
+authors:
+  - Codex
+libraries:
+  - org.mariadb.jdbc:mariadb-java-client:3.5.6
+commands:
+  aethoria:
+    description: Main administrative command for Aethoria Core.
+    usage: /aethoria <subcommand>
+    permission: aethoria.admin
+permissions:
+  aethoria.admin:
+    description: Allows access to Aethoria administrative commands.
+    default: op

@@ -1,0 +1,24 @@
+server-name: "Kingdoms of Aethoria"
+classes:
+  default-class: "WARRIOR"
+  omni-test-class: "TESTER"
+  available:
+    - "WARRIOR"
+    - "MAGE"
+    - "PALADIN"
+    - "TESTER"
+currencies:
+  primary-name: "Aethor"
+  class-swap-cost: 250.0
+  dungeon-daily-bonus: 15
+systems:
+  debug-logging: true
+database:
+  enabled: false
+  host: "localhost"
+  port: 3306
+  name: "aethoria"
+  username: "root"
+  password: "change-me"
+  table-prefix: "aethoria_"
+  use-ssl: false

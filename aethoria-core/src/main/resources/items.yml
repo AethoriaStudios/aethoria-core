@@ -1,0 +1,161 @@
+items:
+  warrior_starter_blade:
+    display-name: "&fRecruit's Blade"
+    rarity: "COMMON"
+    type: "WEAPON"
+    material: "IRON_SWORD"
+    required-class: "WARRIOR"
+    level-requirement: 1
+    stats:
+      damage: 5
+      crit-chance: 2
+
+  mage_starter_staff:
+    display-name: "&fApprentice Staff"
+    rarity: "COMMON"
+    type: "WEAPON"
+    material: "BLAZE_ROD"
+    required-class: "MAGE"
+    level-requirement: 1
+    stats:
+      damage: 2
+      magic-power: 6
+
+  paladin_starter_mace:
+    display-name: "&fNovice Mace"
+    rarity: "COMMON"
+    type: "WEAPON"
+    material: "GOLDEN_AXE"
+    required-class: "PALADIN"
+    level-requirement: 1
+    stats:
+      damage: 4
+      defense: 2
+      health: 5
+
+  warrior_training_helmet:
+    display-name: "&fWarrior Training Helm"
+    rarity: "COMMON"
+    type: "HELMET"
+    material: "IRON_HELMET"
+    required-class: "WARRIOR"
+    level-requirement: 1
+    stats:
+      defense: 2
+
+  warrior_training_chestplate:
+    display-name: "&fWarrior Training Chestplate"
+    rarity: "COMMON"
+    type: "CHESTPLATE"
+    material: "IRON_CHESTPLATE"
+    required-class: "WARRIOR"
+    level-requirement: 1
+    stats:
+      defense: 3
+      health: 4
+
+  warrior_training_leggings:
+    display-name: "&fWarrior Training Leggings"
+    rarity: "COMMON"
+    type: "LEGGINGS"
+    material: "IRON_LEGGINGS"
+    required-class: "WARRIOR"
+    level-requirement: 1
+    stats:
+      defense: 2
+
+  warrior_training_boots:
+    display-name: "&fWarrior Training Boots"
+    rarity: "COMMON"
+    type: "BOOTS"
+    material: "IRON_BOOTS"
+    required-class: "WARRIOR"
+    level-requirement: 1
+    stats:
+      defense: 1
+
+  mage_training_hood:
+    display-name: "&fMage Training Hood"
+    rarity: "COMMON"
+    type: "HELMET"
+    material: "LEATHER_HELMET"
+    required-class: "MAGE"
+    level-requirement: 1
+    stats:
+      magic-power: 2
+
+  mage_training_robes:
+    display-name: "&fMage Training Robes"
+    rarity: "COMMON"
+    type: "CHESTPLATE"
+    material: "LEATHER_CHESTPLATE"
+    required-class: "MAGE"
+    level-requirement: 1
+    stats:
+      magic-power: 3
+      health: 2
+
+  mage_training_leggings:
+    display-name: "&fMage Training Leggings"
+    rarity: "COMMON"
+    type: "LEGGINGS"
+    material: "LEATHER_LEGGINGS"
+    required-class: "MAGE"
+    level-requirement: 1
+    stats:
+      defense: 1
+      magic-power: 1
+
+  mage_training_boots:
+    display-name: "&fMage Training Boots"
+    rarity: "COMMON"
+    type: "BOOTS"
+    material: "LEATHER_BOOTS"
+    required-class: "MAGE"
+    level-requirement: 1
+    stats:
+      defense: 1
+
+  paladin_training_helmet:
+    display-name: "&fPaladin Training Helm"
+    rarity: "COMMON"
+    type: "HELMET"
+    material: "GOLDEN_HELMET"
+    required-class: "PALADIN"
+    level-requirement: 1
+    stats:
+      defense: 2
+      health: 2
+
+  paladin_training_chestplate:
+    display-name: "&fPaladin Training Chestplate"
+    rarity: "COMMON"
+    type: "CHESTPLATE"
+    material: "GOLDEN_CHESTPLATE"
+    required-class: "PALADIN"
+    level-requirement: 1
+    stats:
+      defense: 3
+      health: 4
+
+  paladin_training_leggings:
+    display-name: "&fPaladin Training Legguards"
+    rarity: "COMMON"
+    type: "LEGGINGS"
+    material: "GOLDEN_LEGGINGS"
+    required-class: "PALADIN"
+    level-requirement: 1
+    stats:
+      defense: 2
+      health: 2
+
+  paladin_training_boots:
+    display-name: "&fPaladin Training Boots"
+    rarity: "COMMON"
+    type: "BOOTS"
+    material: "GOLDEN_BOOTS"
+    required-class: "PALADIN"
+    level-requirement: 1
+    stats:
+      defense: 1
+      health: 1
