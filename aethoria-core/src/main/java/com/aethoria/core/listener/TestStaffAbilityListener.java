@@ -2,6 +2,9 @@ package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -29,6 +32,7 @@ public final class TestStaffAbilityListener implements Listener {
     private static final int TEST_ROCKET_LIFETIME_TICKS = 30;
 
     private final AethoriaCorePlugin plugin;
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     public TestStaffAbilityListener(AethoriaCorePlugin plugin) {
         this.plugin = plugin;
@@ -47,7 +51,20 @@ public final class TestStaffAbilityListener implements Listener {
             return;
         }
 
+        long cooldownMillis = getCooldownMillis();
+        long now = System.currentTimeMillis();
+        long availableAt = cooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (cooldownMillis > 0 && now < availableAt) {
+            double secondsRemaining = (availableAt - now) / 1000.0D;
+            player.sendMessage(ChatColor.RED + "Test staff is on cooldown for " + String.format(java.util.Locale.US, "%.1f", secondsRemaining) + "s.");
+            event.setCancelled(true);
+            return;
+        }
+
         event.setCancelled(true);
+        if (cooldownMillis > 0) {
+            cooldowns.put(player.getUniqueId(), now + cooldownMillis);
+        }
         launchTestRocket(player);
     }
 
@@ -112,5 +129,10 @@ public final class TestStaffAbilityListener implements Listener {
         if (shooter instanceof Player player) {
             player.sendMessage(ChatColor.AQUA + "Test rocket launched: 100 hearts damage.");
         }
+    }
+
+    private long getCooldownMillis() {
+        double seconds = Math.max(0.0D, plugin.getConfig().getDouble("testing.test-staff.cooldown-seconds", 2.5D));
+        return Math.round(seconds * 1000.0D);
     }
 }
