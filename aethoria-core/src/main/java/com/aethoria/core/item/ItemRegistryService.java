@@ -2,6 +2,7 @@ package com.aethoria.core.item;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,21 +23,23 @@ public final class ItemRegistryService {
     }
 
     public void initialize() {
-        plugin.saveResource("items.yml", false);
+        ensureItemsFileExists();
         reload();
     }
 
-    public void reload() {
+    public ReloadResult reload() {
+        boolean createdDefaultFile = ensureItemsFileExists();
         File file = new File(plugin.getDataFolder(), "items.yml");
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection itemsSection = configuration.getConfigurationSection("items");
         if (itemsSection == null) {
             definitions = Map.of();
             plugin.getLogger().warning("items.yml is missing the items section.");
-            return;
+            return new ReloadResult(0, 0, createdDefaultFile);
         }
 
         Map<String, AethoriaItemDefinition> loadedDefinitions = new LinkedHashMap<>();
+        int invalidDefinitions = 0;
         for (String itemId : itemsSection.getKeys(false)) {
             ConfigurationSection section = itemsSection.getConfigurationSection(itemId);
             if (section == null) {
@@ -47,12 +50,14 @@ public final class ItemRegistryService {
                 AethoriaItemDefinition definition = parseDefinition(itemId, section);
                 loadedDefinitions.put(definition.id(), definition);
             } catch (IllegalArgumentException exception) {
+                invalidDefinitions++;
                 plugin.getLogger().log(Level.WARNING, "Skipping invalid item definition '" + itemId + "'.", exception);
             }
         }
 
         definitions = Collections.unmodifiableMap(loadedDefinitions);
-        plugin.getLogger().info("Loaded " + definitions.size() + " item definitions.");
+        plugin.getLogger().info("Loaded " + definitions.size() + " item definitions from items.yml" + (invalidDefinitions > 0 ? " with " + invalidDefinitions + " invalid entries skipped." : "."));
+        return new ReloadResult(definitions.size(), invalidDefinitions, createdDefaultFile);
     }
 
     public Optional<AethoriaItemDefinition> getDefinition(String itemId) {
@@ -107,5 +112,35 @@ public final class ItemRegistryService {
 
     private String normalizeId(String itemId) {
         return itemId.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean ensureItemsFileExists() {
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
+            throw new IllegalStateException("Could not create plugin data folder for items.yml.");
+        }
+
+        File itemsFile = new File(plugin.getDataFolder(), "items.yml");
+        if (itemsFile.exists()) {
+            return false;
+        }
+
+        try {
+            plugin.saveResource("items.yml", false);
+            plugin.getLogger().info("Created default items.yml in plugin data folder.");
+            return true;
+        } catch (IllegalArgumentException exception) {
+            try {
+                if (itemsFile.createNewFile()) {
+                    plugin.getLogger().warning("Created empty items.yml because bundled default was unavailable.");
+                    return true;
+                }
+            } catch (IOException ioException) {
+                throw new IllegalStateException("Could not create items.yml.", ioException);
+            }
+            return false;
+        }
+    }
+
+    public record ReloadResult(int loadedDefinitions, int invalidDefinitions, boolean createdDefaultFile) {
     }
 }
