@@ -7,6 +7,7 @@ import com.aethoria.core.item.ItemRegistryService;
 import com.aethoria.core.listener.ItemRestrictionListener;
 import com.aethoria.core.listener.PlayerConnectionListener;
 import com.aethoria.core.listener.TestStaffAbilityListener;
+import com.aethoria.core.listener.CombatProgressionListener;
 import com.aethoria.core.service.ClassSwapService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
@@ -148,6 +149,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
         getServer().getPluginManager().registerEvents(new ItemRestrictionListener(this), this);
         getServer().getPluginManager().registerEvents(new TestStaffAbilityListener(this), this);
+        getServer().getPluginManager().registerEvents(new CombatProgressionListener(this), this);
     }
 
     private void shutdownServices() {

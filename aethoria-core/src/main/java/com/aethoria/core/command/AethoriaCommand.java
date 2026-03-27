@@ -309,7 +309,6 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "add" -> progressionService.addLevels(target.getUniqueId(), amount);
             case "addxp" -> {
                 ProgressionService.ProgressionResult result = progressionService.addExperience(target.getUniqueId(), amount);
-                plugin.getGameplayStatService().refreshLater(target);
                 sender.sendMessage(ChatColor.GREEN + "Added " + amount + " XP to " + target.getName() + ". Level " + result.level() + ", XP " + result.experience() + ", levels gained " + result.levelsGained() + '.');
                 return true;
             }
@@ -319,8 +318,6 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
         }
-
-        plugin.getGameplayStatService().refreshLater(target);
 
         int xpToNext = progressionService.getXpToNextLevel(target.getUniqueId());
         sender.sendMessage(ChatColor.GREEN + "Updated progression for " + target.getName() + ": level " + progressionService.getLevel(target.getUniqueId()) + ", XP " + progressionService.getExperience(target.getUniqueId()) + (xpToNext > 0 ? "/" + xpToNext : " (MAX)") + '.');
