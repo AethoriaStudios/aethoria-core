@@ -1,6 +1,7 @@
 package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -16,7 +17,9 @@ public final class PlayerConnectionListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        plugin.getProfileService().preload(event.getPlayer().getUniqueId());
+        Player player = event.getPlayer();
+        plugin.getProfileService().preload(player.getUniqueId());
+        logJoinDebugDetails(player);
     }
 
     @EventHandler
@@ -29,5 +32,19 @@ public final class PlayerConnectionListener implements Listener {
     public void onPlayerKick(PlayerKickEvent event) {
         plugin.getGameplayStatService().clear(event.getPlayer().getUniqueId());
         plugin.getProfileService().saveAndEvict(event.getPlayer().getUniqueId());
+    }
+
+    private void logJoinDebugDetails(Player player) {
+        if (!plugin.getConfig().getBoolean("systems.debug-logging", false)) {
+            return;
+        }
+
+        String activeClass = plugin.getClassSwapService().getActiveClass(player.getUniqueId());
+        int adventurerLevel = plugin.getProgressionService().getLevel(player.getUniqueId());
+        String mainHandItemId = plugin.getItemFactory().getItemId(player.getInventory().getItemInMainHand()).orElse("none");
+        plugin.getLogger().info("[Debug] Player join: name=" + player.getName()
+            + ", class=" + activeClass
+            + ", level=" + adventurerLevel
+            + ", mainHandAuthoredItem=" + mainHandItemId);
     }
 }
