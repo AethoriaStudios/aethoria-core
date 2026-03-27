@@ -2,6 +2,7 @@ package com.aethoria.core.command;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import com.aethoria.core.item.AethoriaItemDefinition;
+import com.aethoria.core.item.ItemType;
 import com.aethoria.core.item.ItemRegistryService;
 import com.aethoria.core.item.ItemStats;
 import com.aethoria.core.service.ClassSwapService;
@@ -9,8 +10,9 @@ import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.ProgressionService;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
@@ -327,13 +329,14 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleItem(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|inspect>");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|inspect>");
             return true;
         }
 
         return switch (args[1].toLowerCase(Locale.ROOT)) {
             case "list" -> handleItemList(sender);
             case "give" -> handleItemGive(sender, args);
+            case "giveset" -> handleItemGiveSet(sender, args);
             case "inspect" -> handleItemInspect(sender, args);
             default -> {
                 sender.sendMessage(ChatColor.RED + "Unknown item action.");
@@ -386,6 +389,55 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
         target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
         sender.sendMessage(ChatColor.GREEN + "Granted " + amount + "x " + itemId + " to " + target.getName() + '.');
+        return true;
+    }
+
+    private boolean handleItemGiveSet(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item giveset <player> <class>");
+            return true;
+        }
+
+        Player target = resolvePlayer(sender, args, 2, false);
+        if (target == null) {
+            return true;
+        }
+
+        String classId = plugin.getClassSwapService().normalizeClassId(args[3]);
+        if (!plugin.getClassSwapService().isSupportedClass(classId)) {
+            sender.sendMessage(ChatColor.RED + "Unsupported class. Available: " + String.join(", ", plugin.getClassSwapService().getSupportedClasses()));
+            return true;
+        }
+
+        Map<ItemType, AethoriaItemDefinition> armorSet = new EnumMap<>(ItemType.class);
+        for (AethoriaItemDefinition definition : plugin.getItemRegistryService().getDefinitions()) {
+            if (!definition.type().isArmor() || !classId.equals(definition.requiredClass())) {
+                continue;
+            }
+            armorSet.put(definition.type(), definition);
+        }
+
+        List<ItemType> requiredArmorTypes = List.of(ItemType.HELMET, ItemType.CHESTPLATE, ItemType.LEGGINGS, ItemType.BOOTS);
+        List<ItemType> missingPieces = requiredArmorTypes.stream()
+            .filter(itemType -> !armorSet.containsKey(itemType))
+            .toList();
+        if (!missingPieces.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Class armor set for " + classId + " is incomplete. Missing: " + missingPieces.stream().map(Enum::name).collect(Collectors.joining(", ")));
+            return true;
+        }
+
+        for (ItemType itemType : requiredArmorTypes) {
+            AethoriaItemDefinition definition = armorSet.get(itemType);
+            ItemStack itemStack = plugin.getItemFactory().createItem(definition.id(), 1).orElse(null);
+            if (itemStack == null) {
+                sender.sendMessage(ChatColor.RED + "Failed to create authored item for " + definition.id() + '.');
+                return true;
+            }
+
+            target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
+        }
+
+        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " armor set to " + target.getName() + '.');
         return true;
     }
 
@@ -479,7 +531,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria class <get|set|swap> <player> [class]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|inspect> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|inspect> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
     private List<String> completeCurrencyCommand(String[] args, List<String> actions) {
@@ -507,9 +559,12 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeItemCommand(String[] args) {
         if (args.length == 2) {
-            return filter(List.of("list", "give", "inspect"), args[1]);
+            return filter(List.of("list", "give", "giveset", "inspect"), args[1]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("give")) {
+            return filter(getOnlinePlayerNames(), args[2]);
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("giveset")) {
             return filter(getOnlinePlayerNames(), args[2]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("inspect")) {
@@ -518,6 +573,9 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         if (args.length == 4 && args[1].equalsIgnoreCase("give")) {
             List<String> itemIds = plugin.getItemRegistryService().getDefinitions().stream().map(AethoriaItemDefinition::id).toList();
             return filter(itemIds, args[3]);
+        }
+        if (args.length == 4 && args[1].equalsIgnoreCase("giveset")) {
+            return filter(plugin.getClassSwapService().getSupportedClasses(), args[3]);
         }
         return List.of();
     }
