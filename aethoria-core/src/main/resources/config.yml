@@ -13,6 +13,21 @@ currencies:
   dungeon-daily-bonus: 15
 systems:
   debug-logging: true
+progression:
+  mob-kill-xp:
+    enabled: true
+    default-hostile: 25
+    default-passive: 5
+    bosses:
+      ENDER_DRAGON: 1000
+      WITHER: 750
+      WARDEN: 500
+    overrides:
+      ZOMBIE: 20
+      SKELETON: 20
+      CREEPER: 25
+      SPIDER: 18
+      ENDERMAN: 35
 database:
   enabled: false
   host: "localhost"
