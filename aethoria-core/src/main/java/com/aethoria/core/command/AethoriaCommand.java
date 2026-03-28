@@ -329,7 +329,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleItem(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|inspect>");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|inspect|preview>");
             return true;
         }
 
@@ -338,6 +338,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "give" -> handleItemGive(sender, args);
             case "giveset" -> handleItemGiveSet(sender, args);
             case "inspect" -> handleItemInspect(sender, args);
+            case "preview" -> handleItemPreview(sender, args);
             default -> {
                 sender.sendMessage(ChatColor.RED + "Unknown item action.");
                 yield true;
@@ -459,14 +460,36 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sender.sendMessage(ChatColor.GOLD + "Item Inspect: " + ChatColor.YELLOW + definition.id());
-        sender.sendMessage(ChatColor.GRAY + "Name: " + ChatColor.WHITE + ChatColor.stripColor(heldItem.getItemMeta() == null ? definition.displayName() : heldItem.getItemMeta().getDisplayName()));
+        sendItemDefinitionPreview(sender, "Item Inspect", definition, heldItem.getItemMeta() == null ? definition.displayName() : ChatColor.stripColor(heldItem.getItemMeta().getDisplayName()));
+        return true;
+    }
+
+    private boolean handleItemPreview(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item preview <itemId>");
+            return true;
+        }
+
+        AethoriaItemDefinition definition = plugin.getItemRegistryService().getDefinition(args[2]).orElse(null);
+        if (definition == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown item id: " + args[2]);
+            return true;
+        }
+
+        sendItemDefinitionPreview(sender, "Item Preview", definition, ChatColor.stripColor(definition.displayName()));
+        return true;
+    }
+
+    private void sendItemDefinitionPreview(CommandSender sender, String title, AethoriaItemDefinition definition, String resolvedDisplayName) {
+        sender.sendMessage(ChatColor.GOLD + title + ": " + ChatColor.YELLOW + definition.id());
+        sender.sendMessage(ChatColor.GRAY + "Name: " + ChatColor.WHITE + resolvedDisplayName);
         sender.sendMessage(ChatColor.GRAY + "Rarity: " + definition.rarity().getColor() + definition.rarity().getDisplayName());
-        sender.sendMessage(ChatColor.GRAY + "Type: " + ChatColor.WHITE + definition.type().name());
+        sender.sendMessage(ChatColor.GRAY + "Type: " + ChatColor.WHITE + formatEnum(definition.type().name()));
+        sender.sendMessage(ChatColor.GRAY + "Material: " + ChatColor.WHITE + formatEnum(definition.material().name()));
         sender.sendMessage(ChatColor.GRAY + "Required Class: " + ChatColor.WHITE + (definition.hasClassRestriction() ? definition.requiredClass() : "None"));
         sender.sendMessage(ChatColor.GRAY + "Level Requirement: " + ChatColor.WHITE + definition.levelRequirement());
+        sender.sendMessage(ChatColor.GRAY + "Custom Model Data: " + ChatColor.WHITE + (definition.customModelData() == null ? "None" : definition.customModelData()));
         sender.sendMessage(ChatColor.GRAY + "Item Stats: " + ChatColor.WHITE + formatStats(definition.stats()));
-        return true;
     }
 
     private Player resolvePlayer(CommandSender sender, String[] args, int index, boolean allowSelf) {
@@ -522,6 +545,22 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         return entry.getKey() + " +" + formatDecimal(entry.getValue());
     }
 
+    private String formatEnum(String value) {
+        String normalized = value.toLowerCase(Locale.ROOT).replace('_', ' ');
+        String[] words = normalized.split(" ");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isBlank()) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return builder.toString();
+    }
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "Aethoria Core " + ChatColor.GRAY + "v" + plugin.getPluginMeta().getVersion());
         sender.sendMessage(ChatColor.YELLOW + "/aethoria reload" + ChatColor.GRAY + " - Reload plugin configuration");
@@ -531,7 +570,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria class <get|set|swap> <player> [class]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|inspect> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|inspect|preview> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
     private List<String> completeCurrencyCommand(String[] args, List<String> actions) {
@@ -559,7 +598,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeItemCommand(String[] args) {
         if (args.length == 2) {
-            return filter(List.of("list", "give", "giveset", "inspect"), args[1]);
+            return filter(List.of("list", "give", "giveset", "inspect", "preview"), args[1]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("give")) {
             return filter(getOnlinePlayerNames(), args[2]);
@@ -569,6 +608,10 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("inspect")) {
             return filter(getOnlinePlayerNames(), args[2]);
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("preview")) {
+            List<String> itemIds = plugin.getItemRegistryService().getDefinitions().stream().map(AethoriaItemDefinition::id).toList();
+            return filter(itemIds, args[2]);
         }
         if (args.length == 4 && args[1].equalsIgnoreCase("give")) {
             List<String> itemIds = plugin.getItemRegistryService().getDefinitions().stream().map(AethoriaItemDefinition::id).toList();
