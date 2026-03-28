@@ -50,9 +50,6 @@ public final class CombatProgressionListener implements Listener {
         if (result.levelsGained() > 0) {
             String levelUpMessage = ChatColor.GOLD + "✦ LEVEL UP! " + ChatColor.YELLOW + "You are now Adventurer Level " + result.level() + '.';
             killer.sendMessage(levelUpMessage);
-            if (feedbackSection == null || feedbackSection.getBoolean("broadcast-level-up-action-bar", true)) {
-                plugin.getActionBarFeedbackService().show(killer, ActionBarFeedbackService.FeedbackChannel.SYSTEM, levelUpMessage, 40L);
-            }
         }
 
         if (xpToNext == 0) {
