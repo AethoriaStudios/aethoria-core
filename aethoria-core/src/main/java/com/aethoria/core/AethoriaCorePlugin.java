@@ -143,7 +143,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         classItemSetService = new ClassItemSetService(itemRegistryService);
         playerDataStore = createDataStore();
         profileService = new PlayerProfileService(this, playerDataStore);
-        progressionService = new ProgressionService(profileService);
+        progressionService = new ProgressionService(this, profileService);
         currencyService = new CurrencyService(this, profileService);
         coreCurrencyService = new CoreCurrencyService(currencyService);
         classSwapService = new ClassSwapService(this, profileService, currencyService);

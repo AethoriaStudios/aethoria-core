@@ -1,5 +1,7 @@
 package com.aethoria.core.service;
 
+import com.aethoria.core.AethoriaCorePlugin;
+import com.aethoria.core.event.PlayerLevelUpEvent;
 import com.aethoria.core.model.PlayerProfile;
 import java.util.UUID;
 
@@ -9,9 +11,11 @@ public final class ProgressionService {
     private static final int BASE_XP_REQUIREMENT = 100;
     private static final int XP_GROWTH_PER_LEVEL = 25;
 
+    private final AethoriaCorePlugin plugin;
     private final PlayerProfileService profileService;
 
-    public ProgressionService(PlayerProfileService profileService) {
+    public ProgressionService(AethoriaCorePlugin plugin, PlayerProfileService profileService) {
+        this.plugin = plugin;
         this.profileService = profileService;
     }
 
@@ -95,6 +99,9 @@ public final class ProgressionService {
         profile.setAdventurerLevel(currentLevel);
         profile.setAdventurerExperience(currentLevel >= MAX_LEVEL ? 0 : totalExperience);
         profileService.save(playerId);
+        if (levelsGained > 0) {
+            plugin.getServer().getPluginManager().callEvent(new PlayerLevelUpEvent(playerId, currentLevel - levelsGained, currentLevel, levelsGained));
+        }
         return new ProgressionResult(profile.getAdventurerLevel(), profile.getAdventurerExperience(), levelsGained);
     }
 

@@ -1,6 +1,7 @@
 package com.aethoria.core.service;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import com.aethoria.core.event.PlayerClassChangeEvent;
 import com.aethoria.core.model.PlayerProfile;
 import java.util.List;
 import java.util.Locale;
@@ -60,8 +61,12 @@ public final class ClassSwapService {
         }
 
         PlayerProfile profile = profileService.getOrLoad(playerId);
+        String previousClass = profile.getActiveClass();
         profile.setActiveClass(normalizedClass);
         profileService.save(playerId);
+        if (!previousClass.equals(normalizedClass)) {
+            plugin.getServer().getPluginManager().callEvent(new PlayerClassChangeEvent(playerId, previousClass, normalizedClass, false));
+        }
         return true;
     }
 
@@ -76,8 +81,12 @@ public final class ClassSwapService {
         }
 
         PlayerProfile profile = profileService.getOrLoad(playerId);
+        String previousClass = profile.getActiveClass();
         profile.setActiveClass(normalizedClass);
         profileService.save(playerId);
+        if (!previousClass.equals(normalizedClass)) {
+            plugin.getServer().getPluginManager().callEvent(new PlayerClassChangeEvent(playerId, previousClass, normalizedClass, true));
+        }
         return true;
     }
 
