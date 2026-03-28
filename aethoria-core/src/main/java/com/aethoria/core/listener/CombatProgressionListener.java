@@ -44,8 +44,6 @@ public final class CombatProgressionListener implements Listener {
                 ? ChatColor.GRAY + " • " + ChatColor.WHITE + result.experience() + ChatColor.GRAY + "/" + ChatColor.WHITE + xpToNext + " XP"
                 : ChatColor.GOLD + " • MAX LEVEL";
             killer.sendActionBar(net.kyori.adventure.text.Component.text().append(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(xpMessage + progressText)).build());
-        } else {
-            killer.sendMessage(xpMessage);
         }
 
         if (result.levelsGained() > 0) {
@@ -56,10 +54,8 @@ public final class CombatProgressionListener implements Listener {
             }
         }
 
-        if (xpToNext > 0) {
-            killer.sendMessage(ChatColor.GRAY + "XP: " + ChatColor.WHITE + result.experience() + ChatColor.GRAY + "/" + ChatColor.WHITE + xpToNext);
-        } else {
-            killer.sendMessage(ChatColor.GOLD + "You have reached the current max adventurer level.");
+        if (xpToNext == 0) {
+            killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(ChatColor.GOLD + "You have reached the current max adventurer level."));
         }
     }
 
