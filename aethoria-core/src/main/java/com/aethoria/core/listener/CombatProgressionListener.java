@@ -2,6 +2,8 @@ package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import com.aethoria.core.service.ProgressionService;
+import java.util.List;
+import java.util.Locale;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
@@ -33,10 +35,25 @@ public final class CombatProgressionListener implements Listener {
 
         ProgressionService.ProgressionResult result = plugin.getProgressionService().addExperience(killer.getUniqueId(), xpReward);
         int xpToNext = plugin.getProgressionService().getXpToNextLevel(killer.getUniqueId());
-        killer.sendMessage(ChatColor.AQUA + "+" + xpReward + " Adventurer XP" + ChatColor.GRAY + " from " + formatEntityName(event.getEntity().getType()));
+        ConfigurationSection feedbackSection = plugin.getConfig().getConfigurationSection("progression.feedback");
+        boolean useActionBar = feedbackSection == null || feedbackSection.getBoolean("use-action-bar", true);
+        String xpMessage = ChatColor.AQUA + "+" + xpReward + " Adventurer XP" + ChatColor.GRAY + " from " + formatEntityName(event.getEntity().getType());
+
+        if (useActionBar) {
+            String progressText = xpToNext > 0
+                ? ChatColor.GRAY + " • " + ChatColor.WHITE + result.experience() + ChatColor.GRAY + "/" + ChatColor.WHITE + xpToNext + " XP"
+                : ChatColor.GOLD + " • MAX LEVEL";
+            killer.sendActionBar(net.kyori.adventure.text.Component.text().append(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(xpMessage + progressText)).build());
+        } else {
+            killer.sendMessage(xpMessage);
+        }
 
         if (result.levelsGained() > 0) {
-            killer.sendMessage(ChatColor.GOLD + "Level Up! " + ChatColor.YELLOW + "You are now Adventurer Level " + result.level() + '.');
+            String levelUpMessage = ChatColor.GOLD + "✦ LEVEL UP! " + ChatColor.YELLOW + "You are now Adventurer Level " + result.level() + '.';
+            killer.sendMessage(levelUpMessage);
+            if (feedbackSection == null || feedbackSection.getBoolean("broadcast-level-up-action-bar", true)) {
+                killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(levelUpMessage));
+            }
         }
 
         if (xpToNext > 0) {
@@ -62,6 +79,22 @@ public final class CombatProgressionListener implements Listener {
         ConfigurationSection bossesSection = progressionSection.getConfigurationSection("bosses");
         if (bossesSection != null && bossesSection.contains(entityKey)) {
             return Math.max(0, bossesSection.getInt(entityKey, 0));
+        }
+
+        ConfigurationSection categoriesSection = progressionSection.getConfigurationSection("categories");
+        if (categoriesSection != null) {
+            for (String categoryKey : categoriesSection.getKeys(false)) {
+                ConfigurationSection categorySection = categoriesSection.getConfigurationSection(categoryKey);
+                if (categorySection == null) {
+                    continue;
+                }
+
+                List<String> entityNames = categorySection.getStringList("entities");
+                boolean matchesCategory = entityNames.stream().map(name -> name.trim().toUpperCase(Locale.ROOT)).anyMatch(entityKey::equals);
+                if (matchesCategory) {
+                    return Math.max(0, categorySection.getInt("xp", 0));
+                }
+            }
         }
 
         if (entity instanceof Monster) {
