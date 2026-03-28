@@ -2,7 +2,9 @@ package com.aethoria.core;
 
 import com.aethoria.core.api.CoreAuthoredItemLookupService;
 import com.aethoria.core.api.CoreCurrencyService;
+import com.aethoria.core.api.CorePlayerIdentityService;
 import com.aethoria.core.api.CorePlayerProgressionLookupService;
+import com.aethoria.core.api.CoreServices;
 import com.aethoria.core.chat.RankStyleService;
 import com.aethoria.core.command.AethoriaCommand;
 import com.aethoria.core.item.AethoriaItemFactory;
@@ -49,6 +51,8 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private CorePlayerProgressionLookupService playerProgressionLookupService;
     private CoreCurrencyService coreCurrencyService;
     private ActionBarFeedbackService actionBarFeedbackService;
+    private CorePlayerIdentityService playerIdentityService;
+    private CoreServices coreServices;
 
     @Override
     public void onEnable() {
@@ -136,6 +140,14 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return actionBarFeedbackService;
     }
 
+    public CorePlayerIdentityService getPlayerIdentityService() {
+        return playerIdentityService;
+    }
+
+    public CoreServices getCoreServices() {
+        return coreServices;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -146,11 +158,13 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         progressionService = new ProgressionService(this, profileService);
         currencyService = new CurrencyService(this, profileService);
         coreCurrencyService = new CoreCurrencyService(currencyService);
+        playerIdentityService = new CorePlayerIdentityService(this);
         classSwapService = new ClassSwapService(this, profileService, currencyService);
         dungeonService = new DungeonService(this, profileService, currencyService);
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
         authoredItemLookupService = new CoreAuthoredItemLookupService(itemRegistryService, itemFactory);
         playerProgressionLookupService = new CorePlayerProgressionLookupService(progressionService, classSwapService);
+        coreServices = new CoreServices(playerIdentityService, authoredItemLookupService, playerProgressionLookupService, coreCurrencyService);
         gameplayStatService = new GameplayStatService(this);
         actionBarFeedbackService = new ActionBarFeedbackService(this);
         playerRewardService = new PlayerRewardService(this);

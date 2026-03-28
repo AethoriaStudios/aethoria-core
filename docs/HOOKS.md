@@ -53,6 +53,34 @@ This hook returns a lightweight API view (`AuthoredItemView`) instead of exposin
 
 ---
 
+## Player Identity Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Service  
+**Class:** `com.aethoria.core.api.CorePlayerIdentityService`
+
+### Purpose
+
+Provides a stable way for other plugins to resolve players and lightweight player identity data.
+
+### What it does
+
+- find online players by exact name
+- read lightweight identity data by UUID
+- convert online players into reusable identity views
+
+### What it should NOT do
+
+- replace Bukkit player APIs entirely
+- own command parsing logic
+- own social systems or friend systems
+
+### Intended usage
+
+Other plugins should use this when they need a small shared player-resolution helper instead of re-implementing the same Core-side logic repeatedly.
+
+---
+
 ## Reward Hook
 
 **Owner:** `aethoria-core`  
@@ -219,6 +247,7 @@ Provides a stable access pattern for dependent plugins to retrieve Core-owned AP
 
 ### What it contains
 
+- player identity helper API
 - authored item lookup API
 - player progression lookup API
 - currency API
