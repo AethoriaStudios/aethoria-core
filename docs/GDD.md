@@ -2,7 +2,7 @@
 
 ## Visao
 
-Servidor de Minecraft focado em MMORPG PvE medieval, com progressao viciante inspirada em Hypixel SkyBlock, mas com uma regra central:
+Servidor de Minecraft focado em MMORPG PvE medieval, com progressao viciante inspirada em servidores MMO de alta qualidade, mas com uma regra central:
 
 - a dungeon acelera a progressao
 - a dungeon nao substitui o mundo aberto
