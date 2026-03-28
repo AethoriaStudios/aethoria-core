@@ -1,6 +1,8 @@
 package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -42,9 +44,13 @@ public final class PlayerConnectionListener implements Listener {
         String activeClass = plugin.getClassSwapService().getActiveClass(player.getUniqueId());
         int adventurerLevel = plugin.getProgressionService().getLevel(player.getUniqueId());
         String mainHandItemId = plugin.getItemFactory().getItemId(player.getInventory().getItemInMainHand()).orElse("none");
+        String armorItemIds = Arrays.stream(player.getInventory().getArmorContents())
+            .map(itemStack -> plugin.getItemFactory().getItemId(itemStack).orElse("none"))
+            .collect(Collectors.joining(", "));
         plugin.getLogger().info("[Debug] Player join: name=" + player.getName()
             + ", class=" + activeClass
             + ", level=" + adventurerLevel
-            + ", mainHandAuthoredItem=" + mainHandItemId);
+            + ", mainHandAuthoredItem=" + mainHandItemId
+            + ", armorAuthoredItems=[" + armorItemIds + "]");
     }
 }

@@ -1,14 +1,18 @@
 package com.aethoria.core;
 
+import com.aethoria.core.chat.RankStyleService;
 import com.aethoria.core.command.AethoriaCommand;
 import com.aethoria.core.item.AethoriaItemFactory;
 import com.aethoria.core.item.ItemKeys;
 import com.aethoria.core.item.ItemRegistryService;
+import com.aethoria.core.listener.ChatFormattingListener;
 import com.aethoria.core.listener.ItemRestrictionListener;
 import com.aethoria.core.listener.PlayerConnectionListener;
+import com.aethoria.core.listener.PlayerNameFormattingListener;
 import com.aethoria.core.listener.TestStaffAbilityListener;
 import com.aethoria.core.listener.CombatProgressionListener;
 import com.aethoria.core.service.ClassSwapService;
+import com.aethoria.core.service.ClassItemSetService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.GameplayStatService;
@@ -33,6 +37,8 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private ItemKeys itemKeys;
     private ItemRegistryService itemRegistryService;
     private AethoriaItemFactory itemFactory;
+    private RankStyleService rankStyleService;
+    private ClassItemSetService classItemSetService;
 
     @Override
     public void onEnable() {
@@ -96,10 +102,15 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return gameplayStatService;
     }
 
+    public ClassItemSetService getClassItemSetService() {
+        return classItemSetService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
         itemRegistryService.initialize();
+        classItemSetService = new ClassItemSetService(itemRegistryService);
         playerDataStore = createDataStore();
         profileService = new PlayerProfileService(this, playerDataStore);
         progressionService = new ProgressionService(profileService);
@@ -108,6 +119,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         dungeonService = new DungeonService(this, profileService, currencyService);
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
         gameplayStatService = new GameplayStatService(this);
+        rankStyleService = new RankStyleService();
         getLogger().info("Using " + playerDataStore.getStorageName() + " player data store.");
     }
 
@@ -149,10 +161,17 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     }
 
     private void registerListeners() {
+        PlayerNameFormattingListener playerNameFormattingListener = new PlayerNameFormattingListener(this, rankStyleService);
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
+        getServer().getPluginManager().registerEvents(playerNameFormattingListener, this);
+        getServer().getPluginManager().registerEvents(new ChatFormattingListener(rankStyleService), this);
         getServer().getPluginManager().registerEvents(new ItemRestrictionListener(this), this);
         getServer().getPluginManager().registerEvents(new TestStaffAbilityListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatProgressionListener(this), this);
+
+        for (Player player : getServer().getOnlinePlayers()) {
+            playerNameFormattingListener.apply(player);
+        }
     }
 
     private void shutdownServices() {
