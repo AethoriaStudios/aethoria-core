@@ -117,6 +117,48 @@ This hook is intentionally read-focused.
 
 ---
 
+## Currency Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Service  
+**Class:** `com.aethoria.core.api.CoreCurrencyService`
+
+### Purpose
+
+Provides a stable way for other plugins to read shared currency balances and perform simple Core-owned currency mutations.
+
+### What it does
+
+- read primary currency balance
+- read Dungeon Coins balance
+- read both balances together in a snapshot view
+- perform simple deposit / withdraw / set operations
+- return structured mutation results with updated balance snapshots
+
+### What it should NOT do
+
+- own market pricing rules
+- own taxes or auction logic
+- own dungeon reward balancing rules
+- own advanced economy systems outside Core currencies
+
+### Intended usage
+
+Other plugins such as:
+
+- Market
+- Dungeons
+- Quests
+- Shops
+
+should use this hook whenever they need Core-owned balance reads or simple balance mutations without depending directly on internal currency service implementation.
+
+### Notes
+
+This hook only covers currencies that Core already owns.
+
+---
+
 ## Rule for future hooks
 
 When a new hook is added:

@@ -1,6 +1,7 @@
 package com.aethoria.core;
 
 import com.aethoria.core.api.CoreAuthoredItemLookupService;
+import com.aethoria.core.api.CoreCurrencyService;
 import com.aethoria.core.api.CorePlayerProgressionLookupService;
 import com.aethoria.core.chat.RankStyleService;
 import com.aethoria.core.command.AethoriaCommand;
@@ -45,6 +46,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private PlayerRewardService playerRewardService;
     private CoreAuthoredItemLookupService authoredItemLookupService;
     private CorePlayerProgressionLookupService playerProgressionLookupService;
+    private CoreCurrencyService coreCurrencyService;
 
     @Override
     public void onEnable() {
@@ -124,6 +126,10 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return playerProgressionLookupService;
     }
 
+    public CoreCurrencyService getCoreCurrencyService() {
+        return coreCurrencyService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -133,6 +139,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         profileService = new PlayerProfileService(this, playerDataStore);
         progressionService = new ProgressionService(profileService);
         currencyService = new CurrencyService(this, profileService);
+        coreCurrencyService = new CoreCurrencyService(currencyService);
         classSwapService = new ClassSwapService(this, profileService, currencyService);
         dungeonService = new DungeonService(this, profileService, currencyService);
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
