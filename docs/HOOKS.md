@@ -159,6 +159,76 @@ This hook only covers currencies that Core already owns.
 
 ---
 
+## Class Change Event Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Event  
+**Class:** `com.aethoria.core.event.PlayerClassChangeEvent`
+
+### Purpose
+
+Fires when a player's active class changes through Core.
+
+### Intended usage
+
+Other plugins can listen to react to class changes without polling Core repeatedly.
+
+---
+
+## Level-Up Event Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Event  
+**Class:** `com.aethoria.core.event.PlayerLevelUpEvent`
+
+### Purpose
+
+Fires when a player gains one or more adventurer levels through the Core progression service.
+
+### Intended usage
+
+Other plugins can listen for unlocks, tutorials, rewards, or progression milestones.
+
+---
+
+## Authored Item Reload Event Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Event  
+**Class:** `com.aethoria.core.event.AuthoredItemsReloadEvent`
+
+### Purpose
+
+Fires after authored item reload completes successfully.
+
+### Intended usage
+
+Other plugins can refresh caches or invalidate item-related state after Core reloads item definitions.
+
+---
+
+## Core Service Registry Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Service Registry  
+**Class:** `com.aethoria.core.api.CoreServices`
+
+### Purpose
+
+Provides a stable access pattern for dependent plugins to retrieve Core-owned APIs from one place.
+
+### What it contains
+
+- authored item lookup API
+- player progression lookup API
+- currency API
+
+### Intended usage
+
+Dependent plugins can ask Core for `getCoreServices()` and then access the APIs they need without reaching into implementation services directly.
+
+---
+
 ## Rule for future hooks
 
 When a new hook is added:
