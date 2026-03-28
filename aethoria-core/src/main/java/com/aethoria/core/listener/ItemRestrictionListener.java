@@ -1,6 +1,9 @@
 package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +16,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
 public final class ItemRestrictionListener implements Listener {
+    private static final long RESTRICTION_MESSAGE_COOLDOWN_MILLIS = 1500L;
+
     private final AethoriaCorePlugin plugin;
+    private final Map<UUID, Long> lastRestrictionMessageAt = new HashMap<>();
 
     public ItemRestrictionListener(AethoriaCorePlugin plugin) {
         this.plugin = plugin;
@@ -82,7 +88,7 @@ public final class ItemRestrictionListener implements Listener {
         player.getInventory().setArmorContents(armor);
 
         if (removedAny) {
-            player.sendMessage(org.bukkit.ChatColor.RED + "Some equipped items were removed because they do not meet class or level requirements.");
+            sendThrottledMessage(player, org.bukkit.ChatColor.RED + "Some equipped items were removed because they do not meet class or level requirements.");
         }
 
         plugin.getGameplayStatService().refresh(player);
@@ -113,12 +119,24 @@ public final class ItemRestrictionListener implements Listener {
     private void sendRestrictionMessage(Player player, ItemStack itemStack) {
         String activeClass = plugin.getClassSwapService().getActiveClass(player.getUniqueId());
         if (plugin.getItemFactory().isRestrictedForClass(itemStack, activeClass)) {
-            player.sendMessage(org.bukkit.ChatColor.RED + "Your current class cannot use that item.");
+            sendThrottledMessage(player, org.bukkit.ChatColor.RED + "Your current class cannot use that item.");
             return;
         }
 
         int requiredLevel = plugin.getItemFactory().getLevelRequirement(itemStack).orElse(1);
-        player.sendMessage(org.bukkit.ChatColor.RED + "You need adventurer level " + requiredLevel + " to use that item.");
+        int currentLevel = plugin.getProgressionService().getLevel(player.getUniqueId());
+        sendThrottledMessage(player, org.bukkit.ChatColor.RED + "You need adventurer level " + requiredLevel + " to use that item. Your current level is " + currentLevel + '.');
+    }
+
+    private void sendThrottledMessage(Player player, String message) {
+        long now = System.currentTimeMillis();
+        long lastMessageAt = lastRestrictionMessageAt.getOrDefault(player.getUniqueId(), 0L);
+        if (now - lastMessageAt < RESTRICTION_MESSAGE_COOLDOWN_MILLIS) {
+            return;
+        }
+
+        lastRestrictionMessageAt.put(player.getUniqueId(), now);
+        player.sendMessage(message);
     }
 
     private void returnItem(Player player, ItemStack itemStack) {
