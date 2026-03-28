@@ -17,6 +17,9 @@ testing:
   test-staff:
     cooldown-seconds: 2.5
 progression:
+  feedback:
+    use-action-bar: true
+    broadcast-level-up-action-bar: true
   mob-kill-xp:
     enabled: true
     default-hostile: 25
@@ -25,6 +28,38 @@ progression:
       ENDER_DRAGON: 1000
       WITHER: 750
       WARDEN: 500
+    categories:
+      undead:
+        xp: 22
+        entities:
+          - ZOMBIE
+          - HUSK
+          - DROWNED
+          - ZOMBIFIED_PIGLIN
+          - SKELETON
+          - STRAY
+          - WITHER_SKELETON
+      arthropods:
+        xp: 18
+        entities:
+          - SPIDER
+          - CAVE_SPIDER
+          - SILVERFISH
+          - ENDERMITE
+      raiders:
+        xp: 30
+        entities:
+          - PILLAGER
+          - VINDICATOR
+          - EVOKER
+          - RAVAGER
+      passive_farm:
+        xp: 4
+        entities:
+          - COW
+          - SHEEP
+          - PIG
+          - CHICKEN
     overrides:
       ZOMBIE: 20
       SKELETON: 20

@@ -86,7 +86,15 @@ public final class ItemRegistryService {
 
     private AethoriaItemDefinition parseDefinition(String rawItemId, ConfigurationSection section) {
         String itemId = normalizeId(rawItemId);
+        if (itemId.isBlank()) {
+            throw new IllegalArgumentException("Item id cannot be blank.");
+        }
+
         String displayName = section.getString("display-name", itemId);
+        if (displayName == null || displayName.isBlank()) {
+            throw new IllegalArgumentException("display-name cannot be blank.");
+        }
+
         ItemRarity rarity = parseEnum(section.getString("rarity", "COMMON"), ItemRarity.class, "rarity");
         ItemType type = parseEnum(section.getString("type", "MATERIAL"), ItemType.class, "type");
         Material material = Material.matchMaterial(section.getString("material", "STONE"));
@@ -149,8 +157,16 @@ public final class ItemRegistryService {
         List<String> warnings = new ArrayList<>();
         Map<String, List<String>> byClassAndType = new HashMap<>();
         Map<String, List<String>> byClassTypeAndMaterial = new HashMap<>();
+        Map<String, List<String>> byNormalizedDisplayName = new HashMap<>();
 
         for (AethoriaItemDefinition definition : definitions) {
+            String normalizedDisplayName = definition.displayName().trim().toLowerCase(Locale.ROOT);
+            byNormalizedDisplayName.computeIfAbsent(normalizedDisplayName, ignored -> new ArrayList<>()).add(definition.id());
+
+            if (definition.type() != ItemType.MATERIAL && definition.type() != ItemType.CONSUMABLE && definition.stats().isEmpty()) {
+                warnings.add("Item '" + definition.id() + "' has no authored stats even though it is a " + definition.type().name() + ".");
+            }
+
             if (!definition.hasClassRestriction()) {
                 continue;
             }
@@ -182,6 +198,13 @@ public final class ItemRegistryService {
 
             if (itemIds.size() > 1) {
                 warnings.add("Duplicate material detected for class " + requiredClass + ", type " + itemType + ", material " + material + ": " + String.join(", ", itemIds));
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : byNormalizedDisplayName.entrySet()) {
+            List<String> itemIds = entry.getValue();
+            if (itemIds.size() > 1) {
+                warnings.add("Duplicate display name detected across authored items: '" + entry.getKey() + "' used by " + String.join(", ", itemIds));
             }
         }
 
