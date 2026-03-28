@@ -3,12 +3,16 @@ package com.aethoria.core.item;
 import com.aethoria.core.AethoriaCorePlugin;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -35,7 +39,7 @@ public final class ItemRegistryService {
         if (itemsSection == null) {
             definitions = Map.of();
             plugin.getLogger().warning("items.yml is missing the items section.");
-            return new ReloadResult(0, 0, createdDefaultFile);
+            return new ReloadResult(0, 0, 0, createdDefaultFile);
         }
 
         Map<String, AethoriaItemDefinition> loadedDefinitions = new LinkedHashMap<>();
@@ -55,9 +59,18 @@ public final class ItemRegistryService {
             }
         }
 
+        List<String> validationWarnings = collectValidationWarnings(loadedDefinitions.values());
+        for (String warning : validationWarnings) {
+            plugin.getLogger().warning("[Item Validation Warning] " + warning);
+        }
+
         definitions = Collections.unmodifiableMap(loadedDefinitions);
-        plugin.getLogger().info("Loaded " + definitions.size() + " item definitions from items.yml" + (invalidDefinitions > 0 ? " with " + invalidDefinitions + " invalid entries skipped." : "."));
-        return new ReloadResult(definitions.size(), invalidDefinitions, createdDefaultFile);
+        plugin.getLogger().info(
+            "Loaded " + definitions.size() + " item definitions from items.yml"
+                + (invalidDefinitions > 0 ? " with " + invalidDefinitions + " invalid entries skipped" : "")
+                + (validationWarnings.isEmpty() ? "." : " and " + validationWarnings.size() + " validation warnings.")
+        );
+        return new ReloadResult(definitions.size(), invalidDefinitions, validationWarnings.size(), createdDefaultFile);
     }
 
     public Optional<AethoriaItemDefinition> getDefinition(String itemId) {
@@ -82,6 +95,7 @@ public final class ItemRegistryService {
         }
 
         String requiredClass = section.getString("required-class", "").trim().toUpperCase(Locale.ROOT);
+        validateRequiredClass(itemId, requiredClass);
         int levelRequirement = Math.max(0, section.getInt("level-requirement", 1));
         Integer customModelData = section.contains("custom-model-data") ? section.getInt("custom-model-data") : null;
 
@@ -114,6 +128,66 @@ public final class ItemRegistryService {
         return itemId.trim().toLowerCase(Locale.ROOT);
     }
 
+    private void validateRequiredClass(String itemId, String requiredClass) {
+        if (requiredClass.isBlank()) {
+            return;
+        }
+
+        Set<String> supportedClasses = plugin.getConfig().getStringList("classes.available").stream()
+            .map(classId -> classId.trim().toUpperCase(Locale.ROOT))
+            .filter(classId -> !classId.isBlank())
+            .collect(java.util.stream.Collectors.toSet());
+
+        if (!supportedClasses.contains(requiredClass)) {
+            throw new IllegalArgumentException(
+                "Invalid required-class '" + requiredClass + "' for item '" + itemId + "'. Allowed classes: " + String.join(", ", supportedClasses)
+            );
+        }
+    }
+
+    private List<String> collectValidationWarnings(Collection<AethoriaItemDefinition> definitions) {
+        List<String> warnings = new ArrayList<>();
+        Map<String, List<String>> byClassAndType = new HashMap<>();
+        Map<String, List<String>> byClassTypeAndMaterial = new HashMap<>();
+
+        for (AethoriaItemDefinition definition : definitions) {
+            if (!definition.hasClassRestriction()) {
+                continue;
+            }
+
+            String classTypeKey = definition.requiredClass() + '|' + definition.type().name();
+            byClassAndType.computeIfAbsent(classTypeKey, ignored -> new ArrayList<>()).add(definition.id());
+
+            String classTypeMaterialKey = classTypeKey + '|' + definition.material().name();
+            byClassTypeAndMaterial.computeIfAbsent(classTypeMaterialKey, ignored -> new ArrayList<>()).add(definition.id());
+        }
+
+        for (Map.Entry<String, List<String>> entry : byClassAndType.entrySet()) {
+            String[] parts = entry.getKey().split("\\|");
+            String requiredClass = parts[0];
+            String itemType = parts[1];
+            List<String> itemIds = entry.getValue();
+
+            if (itemIds.size() > 1) {
+                warnings.add("Duplicate starter role detected for class " + requiredClass + " and type " + itemType + ": " + String.join(", ", itemIds));
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : byClassTypeAndMaterial.entrySet()) {
+            String[] parts = entry.getKey().split("\\|");
+            String requiredClass = parts[0];
+            String itemType = parts[1];
+            String material = parts[2];
+            List<String> itemIds = entry.getValue();
+
+            if (itemIds.size() > 1) {
+                warnings.add("Duplicate material detected for class " + requiredClass + ", type " + itemType + ", material " + material + ": " + String.join(", ", itemIds));
+            }
+        }
+
+        return warnings;
+    }
+
     private boolean ensureItemsFileExists() {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
             throw new IllegalStateException("Could not create plugin data folder for items.yml.");
@@ -141,6 +215,6 @@ public final class ItemRegistryService {
         }
     }
 
-    public record ReloadResult(int loadedDefinitions, int invalidDefinitions, boolean createdDefaultFile) {
+    public record ReloadResult(int loadedDefinitions, int invalidDefinitions, int warningCount, boolean createdDefaultFile) {
     }
 }

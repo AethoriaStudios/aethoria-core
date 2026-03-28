@@ -78,7 +78,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     private boolean handleReload(CommandSender sender) {
         ItemRegistryService.ReloadResult reloadResult = plugin.reloadAethoria();
         if (reloadResult != null) {
-            sender.sendMessage(ChatColor.GREEN + "Aethoria Core reloaded. items.yml: " + reloadResult.loadedDefinitions() + " loaded, " + reloadResult.invalidDefinitions() + " invalid.");
+            sender.sendMessage(ChatColor.GREEN + "Aethoria Core reloaded. items.yml: " + reloadResult.loadedDefinitions() + " loaded, " + reloadResult.invalidDefinitions() + " invalid, " + reloadResult.warningCount() + " warnings.");
         } else {
             sender.sendMessage(ChatColor.RED + "Aethoria Core reload failed. Check the console.");
         }
