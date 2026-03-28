@@ -17,6 +17,7 @@ import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.GameplayStatService;
 import com.aethoria.core.service.PlayerProfileService;
+import com.aethoria.core.service.PlayerRewardService;
 import com.aethoria.core.service.ProgressionService;
 import com.aethoria.core.storage.MariaDbPlayerDataStore;
 import com.aethoria.core.storage.PlayerDataStore;
@@ -39,6 +40,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private AethoriaItemFactory itemFactory;
     private RankStyleService rankStyleService;
     private ClassItemSetService classItemSetService;
+    private PlayerRewardService playerRewardService;
 
     @Override
     public void onEnable() {
@@ -106,6 +108,10 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return classItemSetService;
     }
 
+    public PlayerRewardService getPlayerRewardService() {
+        return playerRewardService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -119,6 +125,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         dungeonService = new DungeonService(this, profileService, currencyService);
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
         gameplayStatService = new GameplayStatService(this);
+        playerRewardService = new PlayerRewardService(this);
         rankStyleService = new RankStyleService();
         getLogger().info("Using " + playerDataStore.getStorageName() + " player data store.");
     }

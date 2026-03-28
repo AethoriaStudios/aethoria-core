@@ -8,6 +8,7 @@ import com.aethoria.core.item.ItemStats;
 import com.aethoria.core.service.ClassSwapService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
+import com.aethoria.core.service.PlayerRewardService;
 import com.aethoria.core.service.ProgressionService;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "class" -> handleClass(sender, args);
             case "dailybonus" -> handleDailyBonus(sender, args);
             case "level" -> handleLevel(sender, args);
+            case "reward" -> handleReward(sender, args);
             case "item" -> handleItem(sender, args);
             default -> {
                 sender.sendMessage(ChatColor.RED + "Unknown subcommand.");
@@ -59,7 +61,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("reload", "status", "aethor", "dungeoncoins", "class", "dailybonus", "level", "item"), args[0]);
+            return filter(List.of("reload", "status", "aethor", "dungeoncoins", "class", "dailybonus", "level", "reward", "item"), args[0]);
         }
 
         String subcommand = args[0].toLowerCase(Locale.ROOT);
@@ -68,6 +70,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "dungeoncoins" -> completeCurrencyCommand(args, List.of("get", "set", "add", "remove"));
             case "class" -> completeClassCommand(args);
             case "level" -> completeLevelCommand(args);
+            case "reward" -> completeRewardCommand(args);
             case "item" -> completeItemCommand(args);
             case "status", "dailybonus" -> args.length == 2 ? filter(getOnlinePlayerNames(), args[1]) : List.of();
             default -> List.of();
@@ -326,6 +329,50 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleReward(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria reward <player> <xp> [itemId] [amount]");
+            return true;
+        }
+
+        Player target = resolvePlayer(sender, args, 1, false);
+        if (target == null) {
+            return true;
+        }
+
+        Integer xp = parseInteger(sender, args[2]);
+        if (xp == null || xp < 0) {
+            sender.sendMessage(ChatColor.RED + "XP must be a non-negative integer.");
+            return true;
+        }
+
+        List<PlayerRewardService.RewardItem> rewardItems = new ArrayList<>();
+        if (args.length >= 4) {
+            String itemId = args[3];
+            int amount = 1;
+            if (args.length >= 5) {
+                Integer parsedAmount = parseInteger(sender, args[4]);
+                if (parsedAmount == null || parsedAmount <= 0) {
+                    sender.sendMessage(ChatColor.RED + "Reward item amount must be a positive integer.");
+                    return true;
+                }
+                amount = parsedAmount;
+            }
+            rewardItems.add(new PlayerRewardService.RewardItem(itemId, amount));
+        }
+
+        PlayerRewardService.RewardResult result = plugin.getPlayerRewardService().grantRewards(target, new PlayerRewardService.RewardBundle(rewardItems, xp));
+        if (!result.success()) {
+            sender.sendMessage(ChatColor.RED + result.errorMessage());
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.GREEN + "Granted reward bundle to " + target.getName() + ": XP " + result.grantedXp()
+            + (result.grantedItems().isEmpty() ? "" : ", items " + String.join(", ", result.grantedItems()))
+            + ". Result level " + result.resultingLevel() + ", XP " + result.resultingExperience() + ", levels gained " + result.levelsGained() + '.');
+        return true;
+    }
+
     private boolean handleItem(CommandSender sender, String[] args) {
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|inspect|preview>");
@@ -564,6 +611,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria class <get|set|swap> <player> [class]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria reward <player> <xp> [itemId] [amount]" + ChatColor.GRAY + " - Grant a reusable reward bundle for quests/tutorials");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|inspect|preview> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
@@ -623,6 +671,17 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3) {
             return filter(getOnlinePlayerNames(), args[2]);
+        }
+        return List.of();
+    }
+
+    private List<String> completeRewardCommand(String[] args) {
+        if (args.length == 2) {
+            return filter(getOnlinePlayerNames(), args[1]);
+        }
+        if (args.length == 4) {
+            List<String> itemIds = plugin.getItemRegistryService().getDefinitions().stream().map(AethoriaItemDefinition::id).toList();
+            return filter(itemIds, args[3]);
         }
         return List.of();
     }

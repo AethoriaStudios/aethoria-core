@@ -128,9 +128,6 @@ public final class TestStaffAbilityListener implements Listener {
             hitCount++;
         }
 
-        if (hitCount > 0 && shooter instanceof Player player) {
-            player.sendMessage(ChatColor.AQUA + "Test rocket launched: 100 hearts damage.");
-        }
     }
 
     private long getCooldownMillis() {
