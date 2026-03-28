@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.Sound;
 
 public final class CombatProgressionListener implements Listener {
     private final AethoriaCorePlugin plugin;
@@ -50,6 +51,14 @@ public final class CombatProgressionListener implements Listener {
         if (result.levelsGained() > 0) {
             String levelUpMessage = ChatColor.GOLD + "✦ LEVEL UP! " + ChatColor.YELLOW + "You are now Adventurer Level " + result.level() + '.';
             killer.sendMessage(levelUpMessage);
+            killer.showTitle(
+                net.kyori.adventure.title.Title.title(
+                    net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(ChatColor.GOLD + "LEVEL UP!"),
+                    net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(ChatColor.YELLOW + "Adventurer Level " + result.level()),
+                    net.kyori.adventure.title.Title.Times.times(java.time.Duration.ofMillis(200), java.time.Duration.ofMillis(1800), java.time.Duration.ofMillis(600))
+                )
+            );
+            killer.playSound(killer.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 1.1F);
             if (feedbackSection == null || feedbackSection.getBoolean("broadcast-level-up-action-bar", true)) {
                 plugin.getActionBarFeedbackService().show(killer, ActionBarFeedbackService.FeedbackChannel.SYSTEM, levelUpMessage, 40L);
             }
