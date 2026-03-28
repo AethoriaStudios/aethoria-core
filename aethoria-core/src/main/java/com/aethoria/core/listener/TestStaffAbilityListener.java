@@ -1,6 +1,7 @@
 package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import com.aethoria.core.service.ActionBarFeedbackService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,9 +57,12 @@ public final class TestStaffAbilityListener implements Listener {
         long availableAt = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         if (cooldownMillis > 0 && now < availableAt) {
             double secondsRemaining = (availableAt - now) / 1000.0D;
-            player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(
-                ChatColor.RED + "⌛ Staff Cooldown " + ChatColor.GRAY + "- " + ChatColor.YELLOW + String.format(java.util.Locale.US, "%.1f", secondsRemaining) + "s"
-            ));
+            plugin.getActionBarFeedbackService().show(
+                player,
+                ActionBarFeedbackService.FeedbackChannel.COOLDOWN,
+                ChatColor.RED + "⌛ Staff Cooldown " + ChatColor.GRAY + "- " + ChatColor.YELLOW + String.format(java.util.Locale.US, "%.1f", secondsRemaining) + "s",
+                12L
+            );
             event.setCancelled(true);
             return;
         }

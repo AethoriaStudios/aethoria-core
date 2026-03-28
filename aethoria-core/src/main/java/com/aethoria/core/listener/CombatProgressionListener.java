@@ -1,6 +1,7 @@
 package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import com.aethoria.core.service.ActionBarFeedbackService;
 import com.aethoria.core.service.ProgressionService;
 import java.util.List;
 import java.util.Locale;
@@ -44,7 +45,7 @@ public final class CombatProgressionListener implements Listener {
             String progressText = xpToNext > 0
                 ? ChatColor.GRAY + " • " + ChatColor.WHITE + result.experience() + ChatColor.GRAY + "/" + ChatColor.WHITE + xpToNext + " XP"
                 : ChatColor.GOLD + " • MAX LEVEL";
-            killer.sendActionBar(net.kyori.adventure.text.Component.text().append(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(xpMessage + progressText)).build());
+            plugin.getActionBarFeedbackService().show(killer, ActionBarFeedbackService.FeedbackChannel.XP_GAIN, xpMessage + progressText, 30L);
         }
 
         if (result.levelsGained() > 0) {
@@ -59,12 +60,12 @@ public final class CombatProgressionListener implements Listener {
             );
             killer.playSound(killer.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 1.1F);
             if (feedbackSection == null || feedbackSection.getBoolean("broadcast-level-up-action-bar", true)) {
-                killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(levelUpMessage));
+                plugin.getActionBarFeedbackService().show(killer, ActionBarFeedbackService.FeedbackChannel.SYSTEM, levelUpMessage, 40L);
             }
         }
 
         if (xpToNext == 0) {
-            killer.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(ChatColor.GOLD + "You have reached the current max adventurer level."));
+            plugin.getActionBarFeedbackService().show(killer, ActionBarFeedbackService.FeedbackChannel.SYSTEM, ChatColor.GOLD + "You have reached the current max adventurer level.", 30L);
         }
     }
 

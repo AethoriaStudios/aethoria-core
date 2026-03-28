@@ -19,6 +19,7 @@ import com.aethoria.core.service.ClassItemSetService;
 import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.GameplayStatService;
+import com.aethoria.core.service.ActionBarFeedbackService;
 import com.aethoria.core.service.PlayerProfileService;
 import com.aethoria.core.service.PlayerRewardService;
 import com.aethoria.core.service.ProgressionService;
@@ -47,6 +48,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private CoreAuthoredItemLookupService authoredItemLookupService;
     private CorePlayerProgressionLookupService playerProgressionLookupService;
     private CoreCurrencyService coreCurrencyService;
+    private ActionBarFeedbackService actionBarFeedbackService;
 
     @Override
     public void onEnable() {
@@ -130,6 +132,10 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return coreCurrencyService;
     }
 
+    public ActionBarFeedbackService getActionBarFeedbackService() {
+        return actionBarFeedbackService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -146,6 +152,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         authoredItemLookupService = new CoreAuthoredItemLookupService(itemRegistryService, itemFactory);
         playerProgressionLookupService = new CorePlayerProgressionLookupService(progressionService, classSwapService);
         gameplayStatService = new GameplayStatService(this);
+        actionBarFeedbackService = new ActionBarFeedbackService(this);
         playerRewardService = new PlayerRewardService(this);
         rankStyleService = new RankStyleService();
         getLogger().info("Using " + playerDataStore.getStorageName() + " player data store.");
