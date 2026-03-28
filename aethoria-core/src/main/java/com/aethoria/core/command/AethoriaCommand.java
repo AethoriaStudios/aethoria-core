@@ -10,7 +10,6 @@ import com.aethoria.core.service.CurrencyService;
 import com.aethoria.core.service.DungeonService;
 import com.aethoria.core.service.ProgressionService;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -410,25 +409,20 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Map<ItemType, AethoriaItemDefinition> armorSet = new EnumMap<>(ItemType.class);
-        for (AethoriaItemDefinition definition : plugin.getItemRegistryService().getDefinitions()) {
-            if (!definition.type().isArmor() || !classId.equals(definition.requiredClass())) {
-                continue;
-            }
-            armorSet.put(definition.type(), definition);
-        }
-
-        List<ItemType> requiredArmorTypes = List.of(ItemType.HELMET, ItemType.CHESTPLATE, ItemType.LEGGINGS, ItemType.BOOTS);
-        List<ItemType> missingPieces = requiredArmorTypes.stream()
-            .filter(itemType -> !armorSet.containsKey(itemType))
-            .toList();
+        List<ItemType> missingPieces = plugin.getClassItemSetService().getMissingArmorPieces(classId);
         if (!missingPieces.isEmpty()) {
             sender.sendMessage(ChatColor.RED + "Class armor set for " + classId + " is incomplete. Missing: " + missingPieces.stream().map(Enum::name).collect(Collectors.joining(", ")));
             return true;
         }
 
-        for (ItemType itemType : requiredArmorTypes) {
-            AethoriaItemDefinition definition = armorSet.get(itemType);
+        AethoriaItemDefinition starterWeapon = plugin.getClassItemSetService().findPrimaryWeapon(classId).orElse(null);
+        if (starterWeapon == null) {
+            sender.sendMessage(ChatColor.RED + "No authored starter weapon was found for class " + classId + '.');
+            return true;
+        }
+
+        List<AethoriaItemDefinition> loadout = plugin.getClassItemSetService().findFullStarterLoadout(classId);
+        for (AethoriaItemDefinition definition : loadout) {
             ItemStack itemStack = plugin.getItemFactory().createItem(definition.id(), 1).orElse(null);
             if (itemStack == null) {
                 sender.sendMessage(ChatColor.RED + "Failed to create authored item for " + definition.id() + '.');
@@ -438,7 +432,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " armor set to " + target.getName() + '.');
+        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " starter loadout to " + target.getName() + '.');
         return true;
     }
 
