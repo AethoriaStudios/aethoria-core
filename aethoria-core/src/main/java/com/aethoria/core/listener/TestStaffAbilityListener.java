@@ -56,7 +56,9 @@ public final class TestStaffAbilityListener implements Listener {
         long availableAt = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         if (cooldownMillis > 0 && now < availableAt) {
             double secondsRemaining = (availableAt - now) / 1000.0D;
-            player.sendMessage(ChatColor.RED + "Test staff is on cooldown for " + String.format(java.util.Locale.US, "%.1f", secondsRemaining) + "s.");
+            player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(
+                ChatColor.RED + "⌛ Staff Cooldown " + ChatColor.GRAY + "- " + ChatColor.YELLOW + String.format(java.util.Locale.US, "%.1f", secondsRemaining) + "s"
+            ));
             event.setCancelled(true);
             return;
         }
