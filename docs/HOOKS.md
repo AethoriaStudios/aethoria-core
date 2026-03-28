@@ -74,6 +74,49 @@ Future plugins like Quests, Tutorials, and NPC systems should build reward bundl
 
 ---
 
+## Player Progression Lookup Hook
+
+**Owner:** `aethoria-core`  
+**Type:** Service  
+**Class:** `com.aethoria.core.api.CorePlayerProgressionLookupService`
+
+### Purpose
+
+Provides a stable way for other plugins to read shared player progression state.
+
+### What it does
+
+- read active class
+- read adventurer level
+- read current adventurer XP
+- read XP required to next level
+- read max level
+- get a bundled progression view for one player
+
+### What it should NOT do
+
+- own quest progression logic
+- own dungeon unlock logic
+- own skill trees
+- own class combat systems
+
+### Intended usage
+
+Other plugins such as:
+
+- Market
+- Dungeons
+- Quests
+- Tutorials
+
+should use this hook when they need to read player progression data without reaching into Core internals directly.
+
+### Notes
+
+This hook is intentionally read-focused.
+
+---
+
 ## Rule for future hooks
 
 When a new hook is added:
