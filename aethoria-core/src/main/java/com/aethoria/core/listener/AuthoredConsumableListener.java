@@ -31,10 +31,22 @@ public final class AuthoredConsumableListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        double maxHealth = getMaxHealth(player);
-        double healedHealth = Math.min(maxHealth, player.getHealth() + Math.max(0.0D, consumableData.potency()));
-        player.setHealth(healedHealth);
-        player.sendMessage(ChatColor.GREEN + "You recover " + formatNumber(consumableData.potency()) + " health.");
+        double healingAmount = Math.max(0.0D, consumableData.potency());
+        if (healingAmount <= 0.0D) {
+            return;
+        }
+
+        // Apply the authored effect after vanilla consumption handling completes.
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            double maxHealth = getMaxHealth(player);
+            double healedHealth = Math.min(maxHealth, player.getHealth() + healingAmount);
+            if (healedHealth <= player.getHealth()) {
+                return;
+            }
+
+            player.setHealth(healedHealth);
+            player.sendMessage(ChatColor.GREEN + "You recover " + formatNumber(healingAmount) + " health.");
+        });
     }
 
     private double getMaxHealth(Player player) {
