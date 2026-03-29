@@ -73,6 +73,12 @@ public final class AethoriaItemFactory {
             .orElse(ItemStats.empty());
     }
 
+    public Optional<ItemConsumableData> getConsumableData(ItemStack itemStack) {
+        return getDefinition(itemStack)
+            .map(AethoriaItemDefinition::consumableData)
+            .filter(consumableData -> consumableData != null && !consumableData.isEmpty());
+    }
+
     private ItemStack createItem(AethoriaItemDefinition definition, int amount) {
         ItemStack itemStack = new ItemStack(definition.material(), Math.max(1, amount));
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -106,6 +112,15 @@ public final class AethoriaItemFactory {
         if (!definition.stats().isEmpty()) {
             lore.add("");
             definition.stats().asDisplayMap().forEach((stat, value) -> lore.add(ChatColor.GRAY + stat + ": " + ChatColor.GREEN + "+" + formatNumber(value)));
+        }
+
+        if (definition.hasConsumableData()) {
+            lore.add("");
+            lore.add(ChatColor.GRAY + "Effect: " + ChatColor.AQUA + formatEnum(definition.consumableData().effectId()));
+            lore.add(ChatColor.GRAY + "Potency: " + ChatColor.GREEN + formatNumber(definition.consumableData().potency()));
+            if (definition.consumableData().durationSeconds() > 0.0D) {
+                lore.add(ChatColor.GRAY + "Duration: " + ChatColor.WHITE + formatNumber(definition.consumableData().durationSeconds()) + "s");
+            }
         }
 
         lore.add("");
