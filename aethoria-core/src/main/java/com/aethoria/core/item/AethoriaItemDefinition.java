@@ -11,9 +11,14 @@ public record AethoriaItemDefinition(
     String requiredClass,
     int levelRequirement,
     Integer customModelData,
-    ItemStats stats
+    ItemStats stats,
+    ItemConsumableData consumableData
 ) {
     public boolean hasClassRestriction() {
         return requiredClass != null && !requiredClass.isBlank();
+    }
+
+    public boolean hasConsumableData() {
+        return consumableData != null && !consumableData.isEmpty();
     }
 }
