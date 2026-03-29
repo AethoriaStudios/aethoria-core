@@ -469,6 +469,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         }
 
         List<AethoriaItemDefinition> loadout = plugin.getClassItemSetService().findFullStarterLoadout(classId);
+        loadout.addAll(plugin.getClassItemSetService().findConsumableSet());
         for (AethoriaItemDefinition definition : loadout) {
             ItemStack itemStack = plugin.getItemFactory().createItem(definition.id(), 1).orElse(null);
             if (itemStack == null) {
@@ -479,7 +480,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " starter loadout to " + target.getName() + '.');
+        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " starter loadout and authored consumables to " + target.getName() + '.');
         return true;
     }
 

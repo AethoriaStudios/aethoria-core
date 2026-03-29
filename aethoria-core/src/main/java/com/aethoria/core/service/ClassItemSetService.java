@@ -52,6 +52,13 @@ public final class ClassItemSetService {
         return loadout;
     }
 
+    public List<AethoriaItemDefinition> findConsumableSet() {
+        return itemRegistryService.getDefinitions().stream()
+            .filter(definition -> definition.type() == ItemType.CONSUMABLE)
+            .sorted(Comparator.comparingInt(AethoriaItemDefinition::levelRequirement).thenComparing(AethoriaItemDefinition::id))
+            .toList();
+    }
+
     public List<ItemType> getMissingArmorPieces(String classId) {
         Map<ItemType, AethoriaItemDefinition> armorSet = findArmorSet(classId);
         return ARMOR_ORDER.stream()
