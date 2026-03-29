@@ -531,6 +531,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GRAY + "Level Requirement: " + ChatColor.WHITE + definition.levelRequirement());
         sender.sendMessage(ChatColor.GRAY + "Custom Model Data: " + ChatColor.WHITE + (definition.customModelData() == null ? "None" : definition.customModelData()));
         sender.sendMessage(ChatColor.GRAY + "Item Stats: " + ChatColor.WHITE + formatStats(definition.stats()));
+        sender.sendMessage(ChatColor.GRAY + "Consumable Data: " + ChatColor.WHITE + formatConsumableData(definition.consumableData()));
     }
 
     private Player resolvePlayer(CommandSender sender, String[] args, int index, boolean allowSelf) {
@@ -580,6 +581,15 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         return stats.asDisplayMap().entrySet().stream()
             .map(this::formatStatEntry)
             .collect(Collectors.joining(", "));
+    }
+
+    private String formatConsumableData(com.aethoria.core.item.ItemConsumableData consumableData) {
+        if (consumableData == null || consumableData.isEmpty()) {
+            return "None";
+        }
+
+        String duration = consumableData.durationSeconds() > 0.0D ? ", duration " + formatDecimal(consumableData.durationSeconds()) + "s" : "";
+        return formatEnum(consumableData.effectId()) + ", potency " + formatDecimal(consumableData.potency()) + duration;
     }
 
     private String formatStatEntry(Map.Entry<String, Double> entry) {
