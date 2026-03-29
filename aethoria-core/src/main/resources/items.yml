@@ -159,3 +159,13 @@ items:
     stats:
       defense: 1
       health: 1
+
+  minor_healing_potion:
+    display-name: "&aMinor Healing Potion"
+    rarity: "COMMON"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 1
+    consumable:
+      effect-id: "HEAL"
+      potency: 25

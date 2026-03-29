@@ -117,11 +117,22 @@ public final class ItemRegistryService {
             getDouble(statsSection, "health")
         );
 
-        return new AethoriaItemDefinition(itemId, displayName, rarity, type, material, requiredClass, levelRequirement, customModelData, stats);
+        ConfigurationSection consumableSection = section.getConfigurationSection("consumable");
+        ItemConsumableData consumableData = new ItemConsumableData(
+            getString(consumableSection, "effect-id").toUpperCase(Locale.ROOT),
+            getDouble(consumableSection, "potency"),
+            getDouble(consumableSection, "duration-seconds")
+        );
+
+        return new AethoriaItemDefinition(itemId, displayName, rarity, type, material, requiredClass, levelRequirement, customModelData, stats, consumableData);
     }
 
     private double getDouble(ConfigurationSection section, String path) {
         return section == null ? 0.0D : section.getDouble(path, 0.0D);
+    }
+
+    private String getString(ConfigurationSection section, String path) {
+        return section == null ? "" : section.getString(path, "").trim();
     }
 
     private <T extends Enum<T>> T parseEnum(String rawValue, Class<T> type, String fieldName) {
@@ -165,6 +176,14 @@ public final class ItemRegistryService {
 
             if (definition.type() != ItemType.MATERIAL && definition.type() != ItemType.CONSUMABLE && definition.stats().isEmpty()) {
                 warnings.add("Item '" + definition.id() + "' has no authored stats even though it is a " + definition.type().name() + ".");
+            }
+
+            if (definition.type() == ItemType.CONSUMABLE && !definition.hasConsumableData()) {
+                warnings.add("Consumable item '" + definition.id() + "' is missing its consumable section.");
+            }
+
+            if (definition.type() != ItemType.CONSUMABLE && definition.hasConsumableData()) {
+                warnings.add("Item '" + definition.id() + "' defines consumable data but is typed as " + definition.type().name() + ".");
             }
 
             if (!definition.hasClassRestriction()) {
