@@ -375,7 +375,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleItem(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|inspect|preview>");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|givepotionset|inspect|preview>");
             return true;
         }
 
@@ -383,6 +383,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "list" -> handleItemList(sender);
             case "give" -> handleItemGive(sender, args);
             case "giveset" -> handleItemGiveSet(sender, args);
+            case "givepotionset" -> handleItemGivePotionSet(sender, args);
             case "inspect" -> handleItemInspect(sender, args);
             case "preview" -> handleItemPreview(sender, args);
             default -> {
@@ -469,7 +470,6 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         }
 
         List<AethoriaItemDefinition> loadout = plugin.getClassItemSetService().findFullStarterLoadout(classId);
-        loadout.addAll(plugin.getClassItemSetService().findConsumableSet());
         for (AethoriaItemDefinition definition : loadout) {
             ItemStack itemStack = plugin.getItemFactory().createItem(definition.id(), 1).orElse(null);
             if (itemStack == null) {
@@ -480,7 +480,38 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " starter loadout and authored consumables to " + target.getName() + '.');
+        sender.sendMessage(ChatColor.GREEN + "Granted the full " + classId + " starter loadout to " + target.getName() + '.');
+        return true;
+    }
+
+    private boolean handleItemGivePotionSet(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item givepotionset <player>");
+            return true;
+        }
+
+        Player target = resolvePlayer(sender, args, 2, false);
+        if (target == null) {
+            return true;
+        }
+
+        List<AethoriaItemDefinition> consumables = plugin.getClassItemSetService().findConsumableSet();
+        if (consumables.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "No authored consumables are loaded.");
+            return true;
+        }
+
+        for (AethoriaItemDefinition definition : consumables) {
+            ItemStack itemStack = plugin.getItemFactory().createItem(definition.id(), 1).orElse(null);
+            if (itemStack == null) {
+                sender.sendMessage(ChatColor.RED + "Failed to create authored item for " + definition.id() + '.');
+                return true;
+            }
+
+            target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
+        }
+
+        sender.sendMessage(ChatColor.GREEN + "Granted the authored potion set to " + target.getName() + '.');
         return true;
     }
 
@@ -623,7 +654,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria reward <player> <xp> [itemId] [amount]" + ChatColor.GRAY + " - Grant a reusable reward bundle for quests/tutorials");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|inspect|preview> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|givepotionset|inspect|preview> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
     private List<String> completeCurrencyCommand(String[] args, List<String> actions) {
@@ -651,12 +682,15 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeItemCommand(String[] args) {
         if (args.length == 2) {
-            return filter(List.of("list", "give", "giveset", "inspect", "preview"), args[1]);
+            return filter(List.of("list", "give", "giveset", "givepotionset", "inspect", "preview"), args[1]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("give")) {
             return filter(getOnlinePlayerNames(), args[2]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("giveset")) {
+            return filter(getOnlinePlayerNames(), args[2]);
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("givepotionset")) {
             return filter(getOnlinePlayerNames(), args[2]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("inspect")) {
