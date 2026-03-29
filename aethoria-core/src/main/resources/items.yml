@@ -168,4 +168,44 @@ items:
     level-requirement: 1
     consumable:
       effect-id: "HEAL"
-      potency: 25
+      potency: 8
+
+  lesser_healing_potion:
+    display-name: "&2Lesser Healing Potion"
+    rarity: "UNCOMMON"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 5
+    consumable:
+      effect-id: "HEAL"
+      potency: 16
+
+  standard_healing_potion:
+    display-name: "&9Standard Healing Potion"
+    rarity: "RARE"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 10
+    consumable:
+      effect-id: "HEAL"
+      potency: 28
+
+  greater_healing_potion:
+    display-name: "&5Greater Healing Potion"
+    rarity: "EPIC"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 20
+    consumable:
+      effect-id: "HEAL"
+      potency: 45
+
+  major_healing_potion:
+    display-name: "&6Major Healing Potion"
+    rarity: "LEGENDARY"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 30
+    consumable:
+      effect-id: "HEAL"
+      potency: 70
