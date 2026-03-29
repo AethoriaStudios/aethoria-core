@@ -21,6 +21,14 @@ public final class AuthoredConsumableListener implements Listener {
 
     @EventHandler
     public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
+        int playerLevel = plugin.getProgressionService().getLevel(event.getPlayer().getUniqueId());
+        if (plugin.getItemFactory().isRestrictedForLevel(event.getItem(), playerLevel)) {
+            int requiredLevel = plugin.getItemFactory().getLevelRequirement(event.getItem()).orElse(1);
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.RED + "You need adventurer level " + requiredLevel + " to use that item.");
+            return;
+        }
+
         ItemConsumableData consumableData = plugin.getItemFactory().getConsumableData(event.getItem()).orElse(null);
         if (consumableData == null) {
             return;
