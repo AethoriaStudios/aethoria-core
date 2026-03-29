@@ -1,6 +1,7 @@
 package com.aethoria.core.command;
 
 import com.aethoria.core.AethoriaCorePlugin;
+import com.aethoria.core.api.CoreReadinessView;
 import com.aethoria.core.item.AethoriaItemDefinition;
 import com.aethoria.core.item.ItemType;
 import com.aethoria.core.item.ItemRegistryService;
@@ -88,6 +89,10 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean handleStatus(CommandSender sender, String[] args) {
+        if (args.length >= 2 && args[1].equalsIgnoreCase("core")) {
+            return handleCoreStatus(sender);
+        }
+
         Player target = resolvePlayer(sender, args, 1, true);
         if (target == null) {
             return true;
@@ -112,6 +117,17 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         if (maxHealthAttribute != null) {
             sender.sendMessage(ChatColor.GRAY + "Max Health: " + ChatColor.WHITE + formatDecimal(maxHealthAttribute.getBaseValue()));
         }
+        return true;
+    }
+
+    private boolean handleCoreStatus(CommandSender sender) {
+        CoreReadinessView readiness = plugin.getCoreReadinessService().getReadiness();
+        sender.sendMessage(ChatColor.GOLD + "Aethoria Core Readiness");
+        sender.sendMessage(ChatColor.GRAY + "Overall: " + formatReady(readiness.ready()));
+        sender.sendMessage(ChatColor.GRAY + "Items: " + formatReady(readiness.itemsReady()));
+        sender.sendMessage(ChatColor.GRAY + "Progression: " + formatReady(readiness.progressionReady()));
+        sender.sendMessage(ChatColor.GRAY + "Currency: " + formatReady(readiness.currencyReady()));
+        sender.sendMessage(ChatColor.GRAY + "Players: " + formatReady(readiness.playersReady()));
         return true;
     }
 
@@ -605,6 +621,10 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         return String.format(Locale.US, "%.2f", value);
     }
 
+    private String formatReady(boolean ready) {
+        return ready ? ChatColor.GREEN + "Ready" : ChatColor.RED + "Missing";
+    }
+
     private String formatStats(ItemStats stats) {
         if (stats == null || stats.isEmpty()) {
             return "None";
@@ -647,7 +667,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "Aethoria Core " + ChatColor.GRAY + "v" + plugin.getPluginMeta().getVersion());
         sender.sendMessage(ChatColor.YELLOW + "/aethoria reload" + ChatColor.GRAY + " - Reload plugin configuration");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria status [player]" + ChatColor.GRAY + " - Show current class and balances");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria status [player|core]" + ChatColor.GRAY + " - Show player status or Core readiness");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria aethor <get|set|add|remove> <player> [amount]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dungeoncoins <get|set|add|remove> <player> [amount]");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria class <get|set|swap> <player> [class]");

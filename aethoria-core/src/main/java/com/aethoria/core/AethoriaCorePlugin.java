@@ -4,6 +4,7 @@ import com.aethoria.core.api.CoreAuthoredItemLookupService;
 import com.aethoria.core.api.CoreCurrencyService;
 import com.aethoria.core.api.CorePlayerIdentityService;
 import com.aethoria.core.api.CorePlayerProgressionLookupService;
+import com.aethoria.core.api.CoreReadinessService;
 import com.aethoria.core.api.CoreServices;
 import com.aethoria.core.chat.RankStyleService;
 import com.aethoria.core.command.AethoriaCommand;
@@ -53,6 +54,7 @@ public final class AethoriaCorePlugin extends JavaPlugin {
     private CoreCurrencyService coreCurrencyService;
     private ActionBarFeedbackService actionBarFeedbackService;
     private CorePlayerIdentityService playerIdentityService;
+    private CoreReadinessService coreReadinessService;
     private CoreServices coreServices;
 
     @Override
@@ -149,6 +151,10 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         return coreServices;
     }
 
+    public CoreReadinessService getCoreReadinessService() {
+        return coreReadinessService;
+    }
+
     private void bootstrapServices() {
         itemKeys = new ItemKeys(this);
         itemRegistryService = new ItemRegistryService(this);
@@ -165,7 +171,8 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         itemFactory = new AethoriaItemFactory(this, itemRegistryService, itemKeys);
         authoredItemLookupService = new CoreAuthoredItemLookupService(itemRegistryService, itemFactory);
         playerProgressionLookupService = new CorePlayerProgressionLookupService(progressionService, classSwapService);
-        coreServices = new CoreServices(playerIdentityService, authoredItemLookupService, playerProgressionLookupService, coreCurrencyService);
+        coreReadinessService = new CoreReadinessService(this);
+        coreServices = new CoreServices(playerIdentityService, authoredItemLookupService, playerProgressionLookupService, coreCurrencyService, coreReadinessService);
         gameplayStatService = new GameplayStatService(this);
         actionBarFeedbackService = new ActionBarFeedbackService(this);
         playerRewardService = new PlayerRewardService(this);

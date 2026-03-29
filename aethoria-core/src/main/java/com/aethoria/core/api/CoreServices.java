@@ -4,6 +4,7 @@ public record CoreServices(
     CorePlayerIdentityService players,
     CoreAuthoredItemLookupService authoredItems,
     CorePlayerProgressionLookupService progression,
-    CoreCurrencyService currency
+    CoreCurrencyService currency,
+    CoreReadinessService readiness
 ) {
 }
