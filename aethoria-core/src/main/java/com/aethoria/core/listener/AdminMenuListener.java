@@ -238,13 +238,13 @@ public final class AdminMenuListener implements Listener {
     private Inventory createPotionTierFilterMenu(String categoryId) {
         Inventory inventory = Bukkit.createInventory(null, 27, buildPotionTierFilterTitle(categoryId));
         fillBorder(inventory, Material.PURPLE_STAINED_GLASS_PANE, " ");
-        inventory.setItem(10, createButton(Material.GLASS_BOTTLE, ChatColor.WHITE + "Common", ChatColor.GRAY + "Show common potions"));
-        inventory.setItem(11, createButton(Material.LIME_STAINED_GLASS_PANE, ChatColor.GREEN + "Uncommon", ChatColor.GRAY + "Show uncommon potions"));
-        inventory.setItem(12, createButton(Material.LIGHT_BLUE_STAINED_GLASS_PANE, ChatColor.AQUA + "Rare", ChatColor.GRAY + "Show rare potions"));
-        inventory.setItem(14, createButton(Material.MAGENTA_STAINED_GLASS_PANE, ChatColor.LIGHT_PURPLE + "Epic", ChatColor.GRAY + "Show epic potions"));
-        inventory.setItem(15, createButton(Material.ORANGE_STAINED_GLASS_PANE, ChatColor.GOLD + "Legendary", ChatColor.GRAY + "Show legendary potions"));
-        inventory.setItem(16, createButton(Material.POTION, ChatColor.YELLOW + "All Tiers", ChatColor.GRAY + "Show every potion tier"));
-        inventory.setItem(26, createButton(Material.NETHER_STAR, ChatColor.AQUA + "Back to Categories", ChatColor.GRAY + "Return to item categories"));
+        inventory.setItem(10, createButton(Material.POTION, ChatColor.WHITE + "Common", ChatColor.GRAY + "Show common potions"));
+        inventory.setItem(11, createButton(Material.POTION, ChatColor.GREEN + "Uncommon", ChatColor.GRAY + "Show uncommon potions"));
+        inventory.setItem(12, createButton(Material.POTION, ChatColor.AQUA + "Rare", ChatColor.GRAY + "Show rare potions"));
+        inventory.setItem(13, createButton(Material.POTION, ChatColor.YELLOW + "All Tiers", ChatColor.GRAY + "Show every potion tier"));
+        inventory.setItem(14, createButton(Material.POTION, ChatColor.LIGHT_PURPLE + "Epic", ChatColor.GRAY + "Show epic potions"));
+        inventory.setItem(15, createButton(Material.POTION, ChatColor.GOLD + "Legendary", ChatColor.GRAY + "Show legendary potions"));
+        inventory.setItem(22, createButton(Material.NETHER_STAR, ChatColor.AQUA + "Back to Categories", ChatColor.GRAY + "Return to item categories"));
         return inventory;
     }
 
