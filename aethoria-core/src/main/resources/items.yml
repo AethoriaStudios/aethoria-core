@@ -209,3 +209,36 @@ items:
     consumable:
       effect-id: "HEAL"
       potency: 70
+
+  swiftness_potion:
+    display-name: "&bSwiftness Potion"
+    rarity: "UNCOMMON"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 8
+    consumable:
+      effect-id: "SPEED"
+      potency: 1
+      duration-seconds: 30
+
+  strength_potion:
+    display-name: "&cStrength Potion"
+    rarity: "RARE"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 14
+    consumable:
+      effect-id: "INCREASE_DAMAGE"
+      potency: 1
+      duration-seconds: 25
+
+  resistance_potion:
+    display-name: "&7Resistance Potion"
+    rarity: "EPIC"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 18
+    consumable:
+      effect-id: "DAMAGE_RESISTANCE"
+      potency: 1
+      duration-seconds: 20
