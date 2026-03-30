@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 public final class AdminMenuListener implements Listener {
     private static final String ADMIN_MENU_ITEM_ID = "admin_menu_star";
@@ -156,10 +158,10 @@ public final class AdminMenuListener implements Listener {
             case 10 -> "common";
             case 11 -> "uncommon";
             case 12 -> "rare";
-            case 14 -> "epic";
-            case 15 -> "legendary";
-            case 16 -> "all";
-            case 26 -> "back";
+            case 13 -> "epic";
+            case 14 -> "legendary";
+            case 15 -> "all";
+            case 22 -> "back";
             default -> null;
         };
         if (tierId == null) {
@@ -238,12 +240,12 @@ public final class AdminMenuListener implements Listener {
     private Inventory createPotionTierFilterMenu(String categoryId) {
         Inventory inventory = Bukkit.createInventory(null, 27, buildPotionTierFilterTitle(categoryId));
         fillBorder(inventory, Material.PURPLE_STAINED_GLASS_PANE, " ");
-        inventory.setItem(10, createButton(Material.POTION, ChatColor.WHITE + "Common", ChatColor.GRAY + "Show common potions"));
-        inventory.setItem(11, createButton(Material.POTION, ChatColor.GREEN + "Uncommon", ChatColor.GRAY + "Show uncommon potions"));
-        inventory.setItem(12, createButton(Material.POTION, ChatColor.AQUA + "Rare", ChatColor.GRAY + "Show rare potions"));
-        inventory.setItem(13, createButton(Material.POTION, ChatColor.YELLOW + "All Tiers", ChatColor.GRAY + "Show every potion tier"));
-        inventory.setItem(14, createButton(Material.POTION, ChatColor.LIGHT_PURPLE + "Epic", ChatColor.GRAY + "Show epic potions"));
-        inventory.setItem(15, createButton(Material.POTION, ChatColor.GOLD + "Legendary", ChatColor.GRAY + "Show legendary potions"));
+        inventory.setItem(10, createPotionTierButton(ItemRarity.COMMON, "Common", "Show common potions"));
+        inventory.setItem(11, createPotionTierButton(ItemRarity.UNCOMMON, "Uncommon", "Show uncommon potions"));
+        inventory.setItem(12, createPotionTierButton(ItemRarity.RARE, "Rare", "Show rare potions"));
+        inventory.setItem(13, createPotionTierButton(ItemRarity.EPIC, "Epic", "Show epic potions"));
+        inventory.setItem(14, createPotionTierButton(ItemRarity.LEGENDARY, "Legendary", "Show legendary potions"));
+        inventory.setItem(15, createPotionButton(ChatColor.YELLOW + "All Tiers", ChatColor.GRAY + "Show every potion tier", Color.fromRGB(242, 201, 76)));
         inventory.setItem(22, createButton(Material.NETHER_STAR, ChatColor.AQUA + "Back to Categories", ChatColor.GRAY + "Return to item categories"));
         return inventory;
     }
@@ -415,6 +417,32 @@ public final class AdminMenuListener implements Listener {
             itemStack.setItemMeta(itemMeta);
         }
         return itemStack;
+    }
+
+    private ItemStack createPotionTierButton(ItemRarity rarity, String name, String loreLine) {
+        Color color = switch (rarity) {
+            case COMMON -> Color.fromRGB(240, 240, 240);
+            case UNCOMMON -> Color.fromRGB(92, 201, 104);
+            case RARE -> Color.fromRGB(74, 196, 255);
+            case EPIC -> Color.fromRGB(196, 110, 255);
+            case LEGENDARY -> Color.fromRGB(255, 184, 77);
+        };
+        return createPotionButton(rarity.getColor() + name, ChatColor.GRAY + loreLine, color);
+    }
+
+    private ItemStack createPotionButton(String name, String loreLine, Color color) {
+        ItemStack itemStack = new ItemStack(Material.POTION);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta instanceof PotionMeta potionMeta) {
+            potionMeta.setDisplayName(name);
+            potionMeta.setLore(List.of(loreLine));
+            potionMeta.setColor(color);
+            potionMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP, ItemFlag.HIDE_ATTRIBUTES);
+            itemStack.setItemMeta(potionMeta);
+            return itemStack;
+        }
+
+        return createButton(Material.POTION, name, loreLine);
     }
 
     private boolean canUseAdminMenu(Player player) {
