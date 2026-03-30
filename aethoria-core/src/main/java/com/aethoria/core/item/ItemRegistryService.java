@@ -21,6 +21,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public final class ItemRegistryService {
     private final AethoriaCorePlugin plugin;
     private Map<String, AethoriaItemDefinition> definitions = Map.of();
+    private RegistryDiagnostics lastDiagnostics = new RegistryDiagnostics(0, 0, 0, false, List.of(), List.of());
 
     public ItemRegistryService(AethoriaCorePlugin plugin) {
         this.plugin = plugin;
@@ -39,11 +40,13 @@ public final class ItemRegistryService {
         if (itemsSection == null) {
             definitions = Map.of();
             plugin.getLogger().warning("items.yml is missing the items section.");
+            lastDiagnostics = new RegistryDiagnostics(0, 0, 0, createdDefaultFile, List.of("items.yml is missing the items section."), List.of());
             return new ReloadResult(0, 0, 0, createdDefaultFile);
         }
 
         Map<String, AethoriaItemDefinition> loadedDefinitions = new LinkedHashMap<>();
         int invalidDefinitions = 0;
+        List<String> invalidEntries = new ArrayList<>();
         for (String itemId : itemsSection.getKeys(false)) {
             ConfigurationSection section = itemsSection.getConfigurationSection(itemId);
             if (section == null) {
@@ -55,6 +58,7 @@ public final class ItemRegistryService {
                 loadedDefinitions.put(definition.id(), definition);
             } catch (IllegalArgumentException exception) {
                 invalidDefinitions++;
+                invalidEntries.add(itemId + " -> " + exception.getMessage());
                 plugin.getLogger().log(Level.WARNING, "Skipping invalid item definition '" + itemId + "'.", exception);
             }
         }
@@ -65,6 +69,7 @@ public final class ItemRegistryService {
         }
 
         definitions = Collections.unmodifiableMap(loadedDefinitions);
+        lastDiagnostics = new RegistryDiagnostics(definitions.size(), invalidDefinitions, validationWarnings.size(), createdDefaultFile, List.copyOf(invalidEntries), List.copyOf(validationWarnings));
         plugin.getLogger().info(
             "Loaded " + definitions.size() + " item definitions from items.yml"
                 + (invalidDefinitions > 0 ? " with " + invalidDefinitions + " invalid entries skipped" : "")
@@ -82,6 +87,10 @@ public final class ItemRegistryService {
 
     public Collection<AethoriaItemDefinition> getDefinitions() {
         return definitions.values();
+    }
+
+    public RegistryDiagnostics getLastDiagnostics() {
+        return lastDiagnostics;
     }
 
     private AethoriaItemDefinition parseDefinition(String rawItemId, ConfigurationSection section) {
@@ -258,5 +267,15 @@ public final class ItemRegistryService {
     }
 
     public record ReloadResult(int loadedDefinitions, int invalidDefinitions, int warningCount, boolean createdDefaultFile) {
+    }
+
+    public record RegistryDiagnostics(
+        int loadedDefinitions,
+        int invalidDefinitions,
+        int warningCount,
+        boolean createdDefaultFile,
+        List<String> invalidEntries,
+        List<String> warnings
+    ) {
     }
 }

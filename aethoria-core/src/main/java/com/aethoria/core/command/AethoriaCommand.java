@@ -391,7 +391,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleItem(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|givepotionset|inspect|preview>");
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item <list|give|giveset|givepotionset|inspect|preview|diagnostics>");
             return true;
         }
 
@@ -402,6 +402,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             case "givepotionset" -> handleItemGivePotionSet(sender, args);
             case "inspect" -> handleItemInspect(sender, args);
             case "preview" -> handleItemPreview(sender, args);
+            case "diagnostics" -> handleItemDiagnostics(sender);
             default -> {
                 sender.sendMessage(ChatColor.RED + "Unknown item action.");
                 yield true;
@@ -580,6 +581,36 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleItemDiagnostics(CommandSender sender) {
+        ItemRegistryService.RegistryDiagnostics diagnostics = plugin.getItemRegistryService().getLastDiagnostics();
+        sender.sendMessage(ChatColor.GOLD + "Authored Item Registry Diagnostics");
+        sender.sendMessage(ChatColor.GRAY + "Loaded Definitions: " + ChatColor.WHITE + diagnostics.loadedDefinitions());
+        sender.sendMessage(ChatColor.GRAY + "Invalid Definitions: " + (diagnostics.invalidDefinitions() > 0 ? ChatColor.RED : ChatColor.GREEN) + diagnostics.invalidDefinitions());
+        sender.sendMessage(ChatColor.GRAY + "Validation Warnings: " + (diagnostics.warningCount() > 0 ? ChatColor.YELLOW : ChatColor.GREEN) + diagnostics.warningCount());
+        sender.sendMessage(ChatColor.GRAY + "Created Default File: " + (diagnostics.createdDefaultFile() ? ChatColor.YELLOW + "Yes" : ChatColor.GREEN + "No"));
+
+        if (!diagnostics.invalidEntries().isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "Invalid Entries:");
+            diagnostics.invalidEntries().stream().limit(5).forEach(entry -> sender.sendMessage(ChatColor.DARK_RED + "- " + ChatColor.RED + entry));
+            if (diagnostics.invalidEntries().size() > 5) {
+                sender.sendMessage(ChatColor.GRAY + "...and " + (diagnostics.invalidEntries().size() - 5) + " more invalid entries.");
+            }
+        }
+
+        if (!diagnostics.warnings().isEmpty()) {
+            sender.sendMessage(ChatColor.YELLOW + "Warnings:");
+            diagnostics.warnings().stream().limit(5).forEach(warning -> sender.sendMessage(ChatColor.GOLD + "- " + ChatColor.YELLOW + warning));
+            if (diagnostics.warnings().size() > 5) {
+                sender.sendMessage(ChatColor.GRAY + "...and " + (diagnostics.warnings().size() - 5) + " more warnings.");
+            }
+        }
+
+        if (diagnostics.invalidEntries().isEmpty() && diagnostics.warnings().isEmpty()) {
+            sender.sendMessage(ChatColor.GREEN + "Registry health is clean. No invalid entries or warnings were recorded in the last load/reload.");
+        }
+        return true;
+    }
+
     private void sendItemDefinitionPreview(CommandSender sender, String title, AethoriaItemDefinition definition, String resolvedDisplayName) {
         sender.sendMessage(ChatColor.GOLD + title + ": " + ChatColor.YELLOW + definition.id());
         sender.sendMessage(ChatColor.GRAY + "Name: " + ChatColor.WHITE + resolvedDisplayName);
@@ -685,7 +716,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/aethoria dailybonus <player>" + ChatColor.GRAY + " - Grant the configured daily dungeon bonus");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria level <get|set|add|addxp|setxp> <player> [amount]" + ChatColor.GRAY + " - Manage adventurer progression");
         sender.sendMessage(ChatColor.YELLOW + "/aethoria reward <player> <xp> [itemId] [amount]" + ChatColor.GRAY + " - Grant a reusable reward bundle for quests/tutorials");
-        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|givepotionset|inspect|preview> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
+        sender.sendMessage(ChatColor.YELLOW + "/aethoria item <list|give|giveset|givepotionset|inspect|preview|diagnostics> ..." + ChatColor.GRAY + " - Manage authored Aethoria items");
     }
 
     private List<String> completeCurrencyCommand(String[] args, List<String> actions) {
@@ -713,7 +744,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
 
     private List<String> completeItemCommand(String[] args) {
         if (args.length == 2) {
-            return filter(List.of("list", "give", "giveset", "givepotionset", "inspect", "preview"), args[1]);
+            return filter(List.of("list", "give", "giveset", "givepotionset", "inspect", "preview", "diagnostics"), args[1]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("give")) {
             return filter(getOnlinePlayerNames(), args[2]);
