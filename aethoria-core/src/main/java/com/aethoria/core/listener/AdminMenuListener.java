@@ -2,6 +2,7 @@ package com.aethoria.core.listener;
 
 import com.aethoria.core.AethoriaCorePlugin;
 import com.aethoria.core.item.AethoriaItemDefinition;
+import com.aethoria.core.item.ItemRarity;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,6 +26,7 @@ public final class AdminMenuListener implements Listener {
     private static final String ADMIN_MENU_ITEM_ID = "admin_menu_star";
     private static final String ADMIN_MENU_TITLE = ChatColor.DARK_AQUA + "Admin Menu";
     private static final String ITEM_CATEGORIES_TITLE = ChatColor.DARK_GREEN + "Item Categories";
+    private static final String POTION_TIER_FILTER_TITLE_PREFIX = ChatColor.DARK_PURPLE + "Potion Tiers: ";
     private static final String ITEM_BROWSER_TITLE_PREFIX = ChatColor.DARK_GREEN + "Items: ";
     private static final int ITEMS_PER_PAGE = 45;
 
@@ -64,7 +66,10 @@ public final class AdminMenuListener implements Listener {
         }
 
         String title = event.getView().getTitle();
-        if (!ADMIN_MENU_TITLE.equals(title) && !ITEM_CATEGORIES_TITLE.equals(title) && !title.startsWith(ITEM_BROWSER_TITLE_PREFIX)) {
+        if (!ADMIN_MENU_TITLE.equals(title)
+            && !ITEM_CATEGORIES_TITLE.equals(title)
+            && !title.startsWith(POTION_TIER_FILTER_TITLE_PREFIX)
+            && !title.startsWith(ITEM_BROWSER_TITLE_PREFIX)) {
             return;
         }
 
@@ -81,6 +86,11 @@ public final class AdminMenuListener implements Listener {
 
         if (ITEM_CATEGORIES_TITLE.equals(title)) {
             handleCategoryMenuClick(player, event.getSlot());
+            return;
+        }
+
+        if (title.startsWith(POTION_TIER_FILTER_TITLE_PREFIX)) {
+            handlePotionTierFilterClick(player, event.getSlot(), title);
             return;
         }
 
@@ -132,7 +142,35 @@ public final class AdminMenuListener implements Listener {
             return;
         }
 
+        if ("healing-potions".equals(categoryId) || "buff-potions".equals(categoryId)) {
+            player.openInventory(createPotionTierFilterMenu(categoryId));
+            return;
+        }
+
         player.openInventory(createItemBrowserMenu(categoryId, 0));
+    }
+
+    private void handlePotionTierFilterClick(Player player, int slot, String title) {
+        String categoryId = parsePotionTierCategory(title);
+        String tierId = switch (slot) {
+            case 10 -> "common";
+            case 11 -> "uncommon";
+            case 12 -> "rare";
+            case 14 -> "epic";
+            case 15 -> "legendary";
+            case 16 -> "all";
+            case 26 -> "back";
+            default -> null;
+        };
+        if (tierId == null) {
+            return;
+        }
+        if ("back".equals(tierId)) {
+            player.openInventory(createItemCategoriesMenu());
+            return;
+        }
+
+        player.openInventory(createItemBrowserMenu(categoryId + ":" + tierId, 0));
     }
 
     private void handleItemBrowserClick(Player player, int slot, String title) {
@@ -197,6 +235,19 @@ public final class AdminMenuListener implements Listener {
         return inventory;
     }
 
+    private Inventory createPotionTierFilterMenu(String categoryId) {
+        Inventory inventory = Bukkit.createInventory(null, 27, buildPotionTierFilterTitle(categoryId));
+        fillBorder(inventory, Material.PURPLE_STAINED_GLASS_PANE, " ");
+        inventory.setItem(10, createButton(Material.GLASS_BOTTLE, ChatColor.WHITE + "Common", ChatColor.GRAY + "Show common potions"));
+        inventory.setItem(11, createButton(Material.LIME_STAINED_GLASS_PANE, ChatColor.GREEN + "Uncommon", ChatColor.GRAY + "Show uncommon potions"));
+        inventory.setItem(12, createButton(Material.LIGHT_BLUE_STAINED_GLASS_PANE, ChatColor.AQUA + "Rare", ChatColor.GRAY + "Show rare potions"));
+        inventory.setItem(14, createButton(Material.MAGENTA_STAINED_GLASS_PANE, ChatColor.LIGHT_PURPLE + "Epic", ChatColor.GRAY + "Show epic potions"));
+        inventory.setItem(15, createButton(Material.ORANGE_STAINED_GLASS_PANE, ChatColor.GOLD + "Legendary", ChatColor.GRAY + "Show legendary potions"));
+        inventory.setItem(16, createButton(Material.POTION, ChatColor.YELLOW + "All Tiers", ChatColor.GRAY + "Show every potion tier"));
+        inventory.setItem(26, createButton(Material.NETHER_STAR, ChatColor.AQUA + "Back to Categories", ChatColor.GRAY + "Return to item categories"));
+        return inventory;
+    }
+
     private Inventory createItemBrowserMenu(String categoryId, int page) {
         Inventory inventory = Bukkit.createInventory(null, 54, buildItemBrowserTitle(categoryId, page));
         List<AethoriaItemDefinition> definitions = getDefinitionsForCategory(categoryId);
@@ -249,10 +300,25 @@ public final class AdminMenuListener implements Listener {
             case "Warrior Armor" -> "warrior-armor";
             case "Mage Armor" -> "mage-armor";
             case "Paladin Armor" -> "paladin-armor";
-            case "Healing Potions" -> "healing-potions";
-            case "Buff Potions" -> "buff-potions";
+            case "Healing Potions" -> "healing-potions:all";
+            case "Buff Potions" -> "buff-potions:all";
+            case "Healing Potions [Common]" -> "healing-potions:common";
+            case "Healing Potions [Uncommon]" -> "healing-potions:uncommon";
+            case "Healing Potions [Rare]" -> "healing-potions:rare";
+            case "Healing Potions [Epic]" -> "healing-potions:epic";
+            case "Healing Potions [Legendary]" -> "healing-potions:legendary";
+            case "Buff Potions [Common]" -> "buff-potions:common";
+            case "Buff Potions [Uncommon]" -> "buff-potions:uncommon";
+            case "Buff Potions [Rare]" -> "buff-potions:rare";
+            case "Buff Potions [Epic]" -> "buff-potions:epic";
+            case "Buff Potions [Legendary]" -> "buff-potions:legendary";
             default -> "all-items";
         };
+    }
+
+    private String parsePotionTierCategory(String title) {
+        String stripped = ChatColor.stripColor(title).replace("Potion Tiers: ", "").trim();
+        return stripped.startsWith("Healing") ? "healing-potions" : "buff-potions";
     }
 
     private String buildItemBrowserTitle(String categoryId, int page) {
@@ -263,10 +329,24 @@ public final class AdminMenuListener implements Listener {
             case "warrior-armor" -> "Warrior Armor";
             case "mage-armor" -> "Mage Armor";
             case "paladin-armor" -> "Paladin Armor";
-            case "healing-potions" -> "Healing Potions";
-            case "buff-potions" -> "Buff Potions";
+            case "healing-potions:common" -> "Healing Potions [Common]";
+            case "healing-potions:uncommon" -> "Healing Potions [Uncommon]";
+            case "healing-potions:rare" -> "Healing Potions [Rare]";
+            case "healing-potions:epic" -> "Healing Potions [Epic]";
+            case "healing-potions:legendary" -> "Healing Potions [Legendary]";
+            case "healing-potions:all" -> "Healing Potions";
+            case "buff-potions:common" -> "Buff Potions [Common]";
+            case "buff-potions:uncommon" -> "Buff Potions [Uncommon]";
+            case "buff-potions:rare" -> "Buff Potions [Rare]";
+            case "buff-potions:epic" -> "Buff Potions [Epic]";
+            case "buff-potions:legendary" -> "Buff Potions [Legendary]";
+            case "buff-potions:all" -> "Buff Potions";
             default -> "All Authored Items";
         } + ChatColor.DARK_GRAY + " | " + (page + 1);
+    }
+
+    private String buildPotionTierFilterTitle(String categoryId) {
+        return POTION_TIER_FILTER_TITLE_PREFIX + ("healing-potions".equals(categoryId) ? "Healing Potions" : "Buff Potions");
     }
 
     private List<AethoriaItemDefinition> getDefinitionsForCategory(String categoryId) {
@@ -284,10 +364,30 @@ public final class AdminMenuListener implements Listener {
             case "warrior-armor" -> definition.type().isArmor() && hasRequiredClass(definition, "WARRIOR");
             case "mage-armor" -> definition.type().isArmor() && hasRequiredClass(definition, "MAGE");
             case "paladin-armor" -> definition.type().isArmor() && hasRequiredClass(definition, "PALADIN");
-            case "healing-potions" -> definition.type() == com.aethoria.core.item.ItemType.CONSUMABLE && definition.hasConsumableData() && "HEAL".equals(definition.consumableData().effectId());
-            case "buff-potions" -> definition.type() == com.aethoria.core.item.ItemType.CONSUMABLE && definition.hasConsumableData() && !"HEAL".equals(definition.consumableData().effectId());
+            case "healing-potions:common" -> isPotionOfTier(definition, true, ItemRarity.COMMON);
+            case "healing-potions:uncommon" -> isPotionOfTier(definition, true, ItemRarity.UNCOMMON);
+            case "healing-potions:rare" -> isPotionOfTier(definition, true, ItemRarity.RARE);
+            case "healing-potions:epic" -> isPotionOfTier(definition, true, ItemRarity.EPIC);
+            case "healing-potions:legendary" -> isPotionOfTier(definition, true, ItemRarity.LEGENDARY);
+            case "healing-potions:all", "healing-potions" -> isPotion(definition, true);
+            case "buff-potions:common" -> isPotionOfTier(definition, false, ItemRarity.COMMON);
+            case "buff-potions:uncommon" -> isPotionOfTier(definition, false, ItemRarity.UNCOMMON);
+            case "buff-potions:rare" -> isPotionOfTier(definition, false, ItemRarity.RARE);
+            case "buff-potions:epic" -> isPotionOfTier(definition, false, ItemRarity.EPIC);
+            case "buff-potions:legendary" -> isPotionOfTier(definition, false, ItemRarity.LEGENDARY);
+            case "buff-potions:all", "buff-potions" -> isPotion(definition, false);
             default -> true;
         };
+    }
+
+    private boolean isPotion(AethoriaItemDefinition definition, boolean healing) {
+        return definition.type() == com.aethoria.core.item.ItemType.CONSUMABLE
+            && definition.hasConsumableData()
+            && (healing == "HEAL".equals(definition.consumableData().effectId()));
+    }
+
+    private boolean isPotionOfTier(AethoriaItemDefinition definition, boolean healing, ItemRarity rarity) {
+        return isPotion(definition, healing) && definition.rarity() == rarity;
     }
 
     private boolean hasRequiredClass(AethoriaItemDefinition definition, String classId) {
