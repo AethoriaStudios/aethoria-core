@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Optional;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -84,6 +85,9 @@ public final class AethoriaItemFactory {
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.setDisplayName(definition.rarity().getColor() + ChatColor.translateAlternateColorCodes('&', definition.displayName()));
         itemMeta.setLore(buildLore(definition));
+        if (definition.type() == ItemType.CONSUMABLE) {
+            itemMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        }
 
         if (definition.customModelData() != null) {
             itemMeta.setCustomModelData(definition.customModelData());
