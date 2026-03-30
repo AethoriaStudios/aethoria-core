@@ -501,8 +501,8 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean handleItemGivePotionSet(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item givepotionset <player>");
+        if (args.length < 4) {
+            sender.sendMessage(ChatColor.RED + "Usage: /aethoria item givepotionset <player> <healing|buff|all>");
             return true;
         }
 
@@ -511,9 +511,20 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        List<AethoriaItemDefinition> consumables = plugin.getClassItemSetService().findConsumableSet();
+        String category = args[3].toLowerCase(Locale.ROOT);
+        List<AethoriaItemDefinition> consumables = switch (category) {
+            case "healing" -> plugin.getClassItemSetService().findHealingConsumableSet();
+            case "buff" -> plugin.getClassItemSetService().findBuffConsumableSet();
+            case "all" -> plugin.getClassItemSetService().findConsumableSet();
+            default -> null;
+        };
+        if (consumables == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown potion set type. Use healing, buff, or all.");
+            return true;
+        }
+
         if (consumables.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "No authored consumables are loaded.");
+            sender.sendMessage(ChatColor.RED + "No authored " + category + " consumables are loaded.");
             return true;
         }
 
@@ -527,7 +538,7 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
             target.getInventory().addItem(itemStack).values().forEach(leftover -> target.getWorld().dropItemNaturally(target.getLocation(), leftover));
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Granted the authored potion set to " + target.getName() + '.');
+        sender.sendMessage(ChatColor.GREEN + "Granted the " + category + " authored potion set to " + target.getName() + '.');
         return true;
     }
 
@@ -712,6 +723,9 @@ public final class AethoriaCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("givepotionset")) {
             return filter(getOnlinePlayerNames(), args[2]);
+        }
+        if (args.length == 4 && args[1].equalsIgnoreCase("givepotionset")) {
+            return filter(List.of("healing", "buff", "all"), args[3]);
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("inspect")) {
             return filter(getOnlinePlayerNames(), args[2]);

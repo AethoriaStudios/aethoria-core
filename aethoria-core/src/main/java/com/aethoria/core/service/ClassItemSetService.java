@@ -59,6 +59,24 @@ public final class ClassItemSetService {
             .toList();
     }
 
+    public List<AethoriaItemDefinition> findHealingConsumableSet() {
+        return itemRegistryService.getDefinitions().stream()
+            .filter(definition -> definition.type() == ItemType.CONSUMABLE)
+            .filter(AethoriaItemDefinition::hasConsumableData)
+            .filter(definition -> "HEAL".equals(definition.consumableData().effectId()))
+            .sorted(Comparator.comparingInt(AethoriaItemDefinition::levelRequirement).thenComparing(AethoriaItemDefinition::id))
+            .toList();
+    }
+
+    public List<AethoriaItemDefinition> findBuffConsumableSet() {
+        return itemRegistryService.getDefinitions().stream()
+            .filter(definition -> definition.type() == ItemType.CONSUMABLE)
+            .filter(AethoriaItemDefinition::hasConsumableData)
+            .filter(definition -> !"HEAL".equals(definition.consumableData().effectId()))
+            .sorted(Comparator.comparingInt(AethoriaItemDefinition::levelRequirement).thenComparing(AethoriaItemDefinition::id))
+            .toList();
+    }
+
     public List<ItemType> getMissingArmorPieces(String classId) {
         Map<ItemType, AethoriaItemDefinition> armorSet = findArmorSet(classId);
         return ARMOR_ORDER.stream()
