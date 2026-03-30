@@ -1,11 +1,4 @@
 items:
-  admin_menu_star:
-    display-name: "&6Admin Star"
-    rarity: "LEGENDARY"
-    type: "MATERIAL"
-    material: "NETHER_STAR"
-    level-requirement: 1
-
   warrior_starter_blade:
     display-name: "&fRecruit's Blade"
     rarity: "COMMON"
