@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -32,12 +33,12 @@ public final class AdminMenuListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!event.getAction().isRightClick()) {
+        if (event.getHand() != EquipmentSlot.HAND || !event.getAction().isRightClick()) {
             return;
         }
 
         Player player = event.getPlayer();
-        if (!player.hasPermission("aethoria.admin")) {
+        if (!canUseAdminMenu(player)) {
             return;
         }
 
@@ -55,7 +56,7 @@ public final class AdminMenuListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        if (!player.hasPermission("aethoria.admin")) {
+        if (!canUseAdminMenu(player)) {
             return;
         }
 
@@ -81,9 +82,11 @@ public final class AdminMenuListener implements Listener {
     private void handleAdminMenuClick(Player player, int slot) {
         switch (slot) {
             case 11 -> {
-                plugin.reloadAethoria();
-                player.sendMessage(ChatColor.GREEN + "Aethoria Core reloaded from the admin menu.");
-                player.openInventory(createAdminMenu());
+                player.closeInventory();
+                boolean success = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload confirm");
+                player.sendMessage(success
+                    ? ChatColor.GREEN + "Executed /reload confirm from the admin menu."
+                    : ChatColor.RED + "Failed to execute /reload confirm from the admin menu.");
             }
             case 13 -> player.openInventory(createAuthoredItemsMenu(0));
             case 15 -> {
@@ -204,5 +207,9 @@ public final class AdminMenuListener implements Listener {
             itemStack.setItemMeta(itemMeta);
         }
         return itemStack;
+    }
+
+    private boolean canUseAdminMenu(Player player) {
+        return player.isOp() || player.hasPermission("aethoria.admin");
     }
 }
