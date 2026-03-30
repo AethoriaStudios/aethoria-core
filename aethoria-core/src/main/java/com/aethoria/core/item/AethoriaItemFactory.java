@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -87,6 +89,7 @@ public final class AethoriaItemFactory {
         itemMeta.setLore(buildLore(definition));
         if (definition.type() == ItemType.CONSUMABLE) {
             itemMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+            applyConsumableColor(itemMeta, definition.consumableData());
         }
 
         if (definition.customModelData() != null) {
@@ -102,6 +105,21 @@ public final class AethoriaItemFactory {
 
         itemStack.setItemMeta(itemMeta);
         return itemStack;
+    }
+
+    private void applyConsumableColor(ItemMeta itemMeta, ItemConsumableData consumableData) {
+        if (!(itemMeta instanceof PotionMeta potionMeta) || consumableData == null || consumableData.isEmpty()) {
+            return;
+        }
+
+        Color color = switch (consumableData.effectId()) {
+            case "HEAL" -> Color.fromRGB(224, 67, 98);
+            case "SPEED" -> Color.fromRGB(74, 196, 255);
+            case "INCREASE_DAMAGE" -> Color.fromRGB(181, 48, 42);
+            case "DAMAGE_RESISTANCE" -> Color.fromRGB(160, 168, 178);
+            default -> Color.fromRGB(132, 87, 201);
+        };
+        potionMeta.setColor(color);
     }
 
     private List<String> buildLore(AethoriaItemDefinition definition) {
