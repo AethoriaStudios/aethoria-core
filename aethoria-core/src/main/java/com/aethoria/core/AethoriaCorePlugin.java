@@ -13,7 +13,6 @@ import com.aethoria.core.item.ItemKeys;
 import com.aethoria.core.item.ItemRegistryService;
 import com.aethoria.core.listener.ChatFormattingListener;
 import com.aethoria.core.listener.AuthoredConsumableListener;
-import com.aethoria.core.listener.AdminMenuListener;
 import com.aethoria.core.listener.ItemRestrictionListener;
 import com.aethoria.core.listener.PlayerConnectionListener;
 import com.aethoria.core.listener.PlayerNameFormattingListener;
@@ -223,7 +222,6 @@ public final class AethoriaCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
         getServer().getPluginManager().registerEvents(playerNameFormattingListener, this);
         getServer().getPluginManager().registerEvents(new ChatFormattingListener(rankStyleService), this);
-        getServer().getPluginManager().registerEvents(new AdminMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new ItemRestrictionListener(this), this);
         getServer().getPluginManager().registerEvents(new AuthoredConsumableListener(this), this);
         getServer().getPluginManager().registerEvents(new TestStaffAbilityListener(this), this);
