@@ -6,6 +6,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -34,11 +36,15 @@ public final class AuthoredConsumableListener implements Listener {
             return;
         }
 
-        if (!"HEAL".equals(consumableData.effectId())) {
+        if ("HEAL".equals(consumableData.effectId())) {
+            applyHealingEffect(event.getPlayer(), consumableData);
             return;
         }
 
-        Player player = event.getPlayer();
+        applyBuffEffect(event.getPlayer(), consumableData);
+    }
+
+    private void applyHealingEffect(Player player, ItemConsumableData consumableData) {
         double healingAmount = Math.max(0.0D, consumableData.potency());
         if (healingAmount <= 0.0D) {
             return;
@@ -57,6 +63,20 @@ public final class AuthoredConsumableListener implements Listener {
         });
     }
 
+    private void applyBuffEffect(Player player, ItemConsumableData consumableData) {
+        PotionEffectType effectType = PotionEffectType.getByName(consumableData.effectId());
+        int durationTicks = Math.max(1, (int) Math.round(consumableData.durationSeconds() * 20.0D));
+        int amplifier = Math.max(0, (int) Math.round(consumableData.potency()) - 1);
+        if (effectType == null || consumableData.durationSeconds() <= 0.0D) {
+            plugin.getLogger().warning("Ignoring authored consumable effect '" + consumableData.effectId() + "' because it is invalid or missing duration.");
+            return;
+        }
+
+        player.addPotionEffect(new PotionEffect(effectType, durationTicks, amplifier, false, true, true));
+        player.sendMessage(ChatColor.GREEN + "You gain " + formatEffectName(consumableData.effectId()) + " " + formatNumber(consumableData.potency())
+            + " for " + formatNumber(consumableData.durationSeconds()) + "s.");
+    }
+
     private double getMaxHealth(Player player) {
         AttributeInstance maxHealthAttribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         return maxHealthAttribute == null ? DEFAULT_MAX_HEALTH : maxHealthAttribute.getValue();
@@ -67,5 +87,21 @@ public final class AuthoredConsumableListener implements Listener {
             return Long.toString((long) value);
         }
         return String.format(java.util.Locale.US, "%.2f", value);
+    }
+
+    private String formatEffectName(String effectId) {
+        String normalized = effectId.toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        String[] words = normalized.split(" ");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isBlank()) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return builder.toString();
     }
 }
