@@ -115,8 +115,14 @@ public final class AethoriaItemFactory {
         Color color = switch (consumableData.effectId()) {
             case "HEAL" -> Color.fromRGB(224, 67, 98);
             case "SPEED" -> Color.fromRGB(74, 196, 255);
+            case "JUMP" -> Color.fromRGB(106, 214, 131);
+            case "NIGHT_VISION" -> Color.fromRGB(91, 76, 177);
+            case "REGENERATION" -> Color.fromRGB(232, 116, 170);
             case "INCREASE_DAMAGE" -> Color.fromRGB(181, 48, 42);
+            case "FIRE_RESISTANCE" -> Color.fromRGB(255, 136, 36);
+            case "WATER_BREATHING" -> Color.fromRGB(56, 166, 214);
             case "DAMAGE_RESISTANCE" -> Color.fromRGB(160, 168, 178);
+            case "ABSORPTION" -> Color.fromRGB(242, 201, 76);
             default -> Color.fromRGB(132, 87, 201);
         };
         potionMeta.setColor(color);

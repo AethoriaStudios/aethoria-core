@@ -228,6 +228,39 @@ items:
       potency: 1
       duration-seconds: 30
 
+  featherstep_tonic:
+    display-name: "&aFeatherstep Tonic"
+    rarity: "UNCOMMON"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 6
+    consumable:
+      effect-id: "JUMP"
+      potency: 1
+      duration-seconds: 35
+
+  night_vision_elixir:
+    display-name: "&9Night Vision Elixir"
+    rarity: "UNCOMMON"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 6
+    consumable:
+      effect-id: "NIGHT_VISION"
+      potency: 1
+      duration-seconds: 120
+
+  regeneration_draught:
+    display-name: "&dRegeneration Draught"
+    rarity: "RARE"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 12
+    consumable:
+      effect-id: "REGENERATION"
+      potency: 1
+      duration-seconds: 18
+
   strength_potion:
     display-name: "&cStrength Potion"
     rarity: "RARE"
@@ -239,6 +272,28 @@ items:
       potency: 1
       duration-seconds: 25
 
+  fireward_potion:
+    display-name: "&6Fireward Potion"
+    rarity: "RARE"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 16
+    consumable:
+      effect-id: "FIRE_RESISTANCE"
+      potency: 1
+      duration-seconds: 45
+
+  waterstride_potion:
+    display-name: "&3Waterstride Potion"
+    rarity: "RARE"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 16
+    consumable:
+      effect-id: "WATER_BREATHING"
+      potency: 1
+      duration-seconds: 45
+
   resistance_potion:
     display-name: "&7Resistance Potion"
     rarity: "EPIC"
@@ -249,3 +304,47 @@ items:
       effect-id: "DAMAGE_RESISTANCE"
       potency: 1
       duration-seconds: 20
+
+  titanblood_potion:
+    display-name: "&6Titanblood Potion"
+    rarity: "EPIC"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 24
+    consumable:
+      effect-id: "ABSORPTION"
+      potency: 1
+      duration-seconds: 30
+
+  stormrunner_elixir:
+    display-name: "&bStormrunner Elixir"
+    rarity: "EPIC"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 26
+    consumable:
+      effect-id: "SPEED"
+      potency: 2
+      duration-seconds: 18
+
+  hero_regeneration_elixir:
+    display-name: "&dHero Regeneration Elixir"
+    rarity: "LEGENDARY"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 28
+    consumable:
+      effect-id: "REGENERATION"
+      potency: 2
+      duration-seconds: 12
+
+  juggernaut_tonic:
+    display-name: "&6Juggernaut Tonic"
+    rarity: "LEGENDARY"
+    type: "CONSUMABLE"
+    material: "POTION"
+    level-requirement: 30
+    consumable:
+      effect-id: "ABSORPTION"
+      potency: 2
+      duration-seconds: 18
